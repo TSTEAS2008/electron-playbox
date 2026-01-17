@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' app:; style-src 'self' app:; img-src 'self' app:; object-src 'none'; media-src 'self' app:;">
+	<title>Sandbox Controls</title>
+	<link rel="stylesheet" href="style.css">
+</head>
+<body>
+	<h1>Sandbox Controls</h1>
+	<div class="button-grid">
+		<button id="btnNavigate">Redirect Back</button>
+		<button id="btnClearSandbox">Clear Sandbox</button>
+		<button id="btnPrepareSandbox">Prepare Sandbox</button>
+		<button id="btnAssembleSandbox">Assemble Sandbox</button>
+		<button id="btnClearSandboxFolder">Clear Sandbox Folder</button>
+		<button id="btnLaunch">Launch</button>
+	</div>
+
+	<img id="random-img" src="app://media/example/random.png" alt="Random">
+
+	<script type="module" src="main.js"></script>
+</body>
+</html>

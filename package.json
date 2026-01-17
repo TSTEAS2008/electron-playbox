@@ -1,0 +1,23 @@
+{
+  "name": "Electron Playbox",
+  "version": "1.0.0",
+  "description": "Abstraction layer for Electron.",
+  "license": "MIT",
+  "author": "tsteas2008",
+  "type": "module",
+  "main": "main.js",
+"scripts": {
+  "raw": "electron .",
+  "package-linux": "electron-packager . $npm_config_appname --platform=linux --arch=x64 --out=dist --overwrite",
+  "package-windows": "electron-packager . $npm_config_appname --platform=win32 --arch=x64 --out=dist --overwrite",
+  "package-mac-x64": "electron-packager . $npm_config_appname --platform=darwin --arch=x64 --out=dist --overwrite",
+  "package-mac-arm64": "electron-packager . $npm_config_appname --platform=darwin --arch=arm64 --out=dist --overwrite"
+},
+  "devDependencies": {
+    "electron": "^39.2.4",
+    "electron-packager": "^17.1.2"
+  },
+  "dependencies": {
+    "tree-kill": "^1.2.2"
+  }
+}

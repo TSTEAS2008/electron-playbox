@@ -1,0 +1,269 @@
+/* app://launcher/menu.css */
+
+/* ============================================
+   CSS CUSTOM PROPERTIES (VARIABLES)
+   ============================================
+   Base units calculated from 1080p height and 1920p width
+   cqh = container query height units
+   cqw = container query width units
+============================================ */
+
+:root {
+    /* Aspect Ratio */
+    --aspect-w: 16;
+    --aspect-h: 9;
+    
+    /* Base Measurements (in px for reference) */
+    --base-height: 1080;
+    --base-width: 1920;
+    
+    /* Spacing Scale (converted to cqh) */
+    --space-1: 0.093cqh;   /* 1/1080 */
+    --space-2: 0.185cqh;   /* 2/1080 */
+    --space-4: 0.37cqh;    /* 4/1080 */
+    --space-8: 0.74cqh;    /* 8/1080 */
+    --space-10: 0.93cqh;   /* 10/1080 */
+    --space-15: 1.39cqh;   /* 15/1080 */
+    --space-16: 1.48cqh;   /* 16/1080 */
+    --space-20: 1.85cqh;   /* 20/1080 */
+    --space-24: 2.22cqh;   /* 24/1080 */
+    --space-30: 2.78cqh;   /* 30/1080 */
+    --space-45: 4.17cqh;   /* 45/1080 */
+    
+    /* Width Scale (converted to cqw) */
+    --width-800: 41.67cqw; /* 800/1920 */
+    
+    /* Font Sizes */
+    --font-size-h1: var(--space-45);      /* 45px */
+    --font-size-button: var(--space-30);  /* 30px */
+    --font-size-popup: var(--space-24);   /* 24px */
+    --font-size-popup-btn: var(--space-20); /* 20px */
+    
+    /* Border Radius */
+    --radius-sm: var(--space-4);   /* 4px */
+    --radius-md: var(--space-10);  /* 10px */
+    --radius-lg: var(--space-16);  /* 16px */
+    --radius-xl: var(--space-20);  /* 20px */
+    
+    /* Colors */
+    --color-black: #000000;
+    --color-bg-dark: #0a0a0a;
+    --color-text-light: #f2f2f2;
+    --color-text-lighter: #eee;
+    --color-accent: #f9d65c;
+    --color-accent-glow: rgba(255, 230, 150, 0.4);
+    --color-bg-overlay: rgba(255, 255, 255, 0.05);
+    --color-bg-popup: rgba(0, 0, 0, 0.8);
+    --color-button-start: #1c1c1c;
+    --color-button-end: #2a2a2a;
+    --color-button-hover-start: #2a2a2a;
+    --color-button-hover-end: #3c3c3c;
+    --color-border: #333;
+    --color-border-hover: var(--color-accent);
+    --color-scrollbar: #444;
+    --color-scrollbar-hover: #666;
+    --color-success: #28a745;
+    --color-success-hover: #218838;
+    
+    /* Shadows */
+    --shadow-glow: 0 0 var(--space-10) var(--color-accent-glow);
+    --shadow-inset: 0 0 var(--space-20) rgba(0, 0, 0, 0.5) inset;
+    
+    /* Container Scaling */
+    --container-width: 100vw;
+    --container-height: calc(100vw * var(--aspect-h) / var(--aspect-w));
+    --container-max-height: 100vh;
+    --container-max-width: calc(100vh * var(--aspect-w) / var(--aspect-h));
+}
+
+/* ============================================
+   LAYOUT STRUCTURE
+   ============================================ */
+
+/* Black background for letterboxing */
+html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background-color: var(--color-black);
+    overflow: hidden;
+}
+
+/* 16:9 container that scales to fit */
+body {
+    margin: 0;
+    padding: 0;
+    position: absolute;
+    background-color: var(--color-bg-dark);
+    color: var(--color-text-light);
+    font-family: 'Segoe UI', Roboto, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow: hidden;
+    
+    /* Force 16:9 aspect ratio */
+    aspect-ratio: var(--aspect-w) / var(--aspect-h);
+    
+    /* Center and scale to fit viewport */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    
+    /* Scale to fit within viewport while maintaining aspect ratio */
+    width: var(--container-width);
+    height: var(--container-height);
+    max-height: var(--container-max-height);
+    max-width: var(--container-max-width);
+    
+    /* Use container queries - body becomes the container */
+    container-type: size;
+}
+
+/* ============================================
+   TYPOGRAPHY
+   ============================================ */
+
+h1 {
+    margin: var(--space-30) 0 var(--space-20);
+    text-align: center;
+    font-size: var(--font-size-h1);
+    letter-spacing: var(--space-2);
+    color: var(--color-accent);
+    text-shadow: var(--shadow-glow);
+}
+
+/* ============================================
+   GAME LIST
+   ============================================ */
+
+#game-list {
+    flex: 1;
+    width: 80%;
+    max-width: var(--width-800);
+    overflow-y: auto;
+    background: var(--color-bg-overlay);
+    border-radius: var(--radius-lg);
+    padding: var(--space-20);
+    box-shadow: var(--shadow-inset);
+}
+
+.game-button {
+    display: block;
+    width: 100%;
+    background: linear-gradient(90deg, var(--color-button-start), var(--color-button-end));
+    border: var(--space-1) solid var(--color-border);
+    border-radius: var(--radius-md);
+    color: var(--color-text-lighter);
+    font-size: var(--font-size-button);
+    padding: var(--space-15) var(--space-20);
+    margin: var(--space-10) 0;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.game-button:hover {
+    background: linear-gradient(90deg, var(--color-button-hover-start), var(--color-button-hover-end));
+    border-color: var(--color-border-hover);
+    transform: translateY(calc(-1 * var(--space-2)));
+}
+
+/* ============================================
+   SCROLLBAR
+   ============================================ */
+
+::-webkit-scrollbar {
+    width: var(--space-8);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--color-scrollbar);
+    border-radius: var(--radius-sm);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--color-scrollbar-hover);
+}
+
+/* ============================================
+   POPUP
+   ============================================ */
+
+.popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: var(--color-bg-popup);
+    color: white;
+    padding: var(--space-20);
+    border-radius: var(--radius-xl);
+    text-align: center;
+    z-index: 9999;
+}
+
+.popup p {
+    font-size: var(--font-size-popup);
+    font-weight: bold;
+    margin: 0 0 var(--space-10) 0;
+}
+
+.popup-btn {
+    background-color: var(--color-success);
+    color: white;
+    border: none;
+    padding: var(--space-10) var(--space-20);
+    margin-top: var(--space-10);
+    cursor: pointer;
+    font-size: var(--font-size-popup-btn);
+    font-weight: bold;
+    border-radius: var(--radius-md);
+    transition: background 0.3s ease;
+}
+
+.popup-btn:hover {
+    background-color: var(--color-success-hover);
+}
+
+/* ============================================
+   SPLASH SCREEN
+   ============================================ */
+
+#splash-screen {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    
+    /* Match body's 16:9 container sizing */
+    width: var(--container-width);
+    height: var(--container-height);
+    max-height: var(--container-max-height);
+    max-width: var(--container-max-width);
+    
+    background-color: var(--color-black);
+    z-index: 10000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    pointer-events: none;
+    opacity: 1;
+    transition: opacity 0.7s ease-out;
+}
+
+#splash-video {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+/* Hide splash after it's done */
+#splash-screen.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+#splash-screen.removed {
+    display: none;
+}

@@ -1,0 +1,39 @@
+{
+  "defaultAssembly": false,
+  "controls": [
+    {
+      "output": "index.html",
+      "outputPath": "",
+      "components": [
+        "test.html"
+      ],
+      "componentPath": "test"
+    },
+    {
+      "output": "style.css",
+      "outputPath": "",
+      "components": [
+        "css/root.css",
+        "test/test.css"
+      ],
+      "componentPath": "",
+      "assembly": true
+    },
+    {
+      "output": "main.js",
+      "outputPath": "",
+      "components": [
+        "test.js"
+      ],
+      "componentPath": "test"
+    },
+    {
+      "output": "thing.js",
+      "outputPath": "stuff",
+      "components": [
+        "script.js"
+      ],
+      "componentPath": "test"
+    }
+  ]
+}
