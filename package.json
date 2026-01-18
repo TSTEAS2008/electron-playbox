@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Abstraction layer for Electron.",
   "license": "MIT",
-  "author": "tsteas2008",
+  "author": "TSTEAS2008",
   "type": "module",
   "main": "main.js",
 "scripts": {
