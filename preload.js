@@ -13,17 +13,17 @@ const call = async (channel, args) => {
 };
 
 contextBridge.exposeInMainWorld("api", {
-    // 1) Clear sandbox or a specific folder
-    clearSandbox: (folder = "all") =>
-    call("clear-sandbox", { folder }),
+    // 1) Clear playbox or a specific folder
+    clearPlaybox: (folder = "all") =>
+    call("clear-playbox", { folder }),
 
-    // 2) Prepare sandbox (given a config file)
-    prepareSandbox: (configPath) =>
-    call("prepare-sandbox", { configPath }),
+    // 2) Prepare playbox (given a config file)
+    preparePlaybox: (configPath) =>
+    call("prepare-playbox", { configPath }),
 
-    // 3) Assemble sandbox (given a config file)
-    assembleSandbox: (configPath) =>
-    call("assemble-sandbox", { configPath }),
+    // 3) Assemble playbox (given a config file)
+    assemblePlaybox: (configPath) =>
+    call("assemble-playbox", { configPath }),
 
     // 4) Start an external or Node app
     startApp: (appPath) =>

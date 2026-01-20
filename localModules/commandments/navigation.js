@@ -1,7 +1,7 @@
 //localmodules/commandments/navigation.js
 import { isPathSafe, APP_PROTOCOL, servedPaths } from "../appProtocol.js";
 import { errorLog } from '../loggers.js';
-import { errorResponse, successResponse } from "../sandboxHelpers.js";
+import { errorResponse, successResponse } from "../playboxHelpers.js";
 
 
 export function navigateWindow(urlPath, mainWindow) {

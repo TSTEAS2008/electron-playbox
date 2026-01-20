@@ -3,10 +3,10 @@
 // --- Menu Initialization ---
 async function initializeMenu() {
     try {
-        const result = await window.api.clearSandbox('all');
+        const result = await window.api.clearPlaybox('all');
         console.log(result.message);
     } catch (err) {
-        console.error('ClearSandbox Error:', err);
+        console.error('ClearPlaybox Error:', err);
     }
 
     const games = [
@@ -34,15 +34,15 @@ async function initializeMenu() {
         btn.textContent = g.name;
         btn.addEventListener("click", async () => {
             try {
-                // Step 1: assemble sandbox using config
-                const result = await window.api.assembleSandbox(g.config);
+                // Step 1: assemble playbox using config
+                const result = await window.api.assemblePlaybox(g.config);
                 if (!result?.success) {
                     console.error("Assembly failed:", result?.message);
                     createPopup(`Failed to assemble ${g.name}`);
                     return;
                 }
-                // Step 2: navigate to the game file in the sandbox
-                const navResult = await window.api.navigate(`sandbox/${g.file}`);
+                // Step 2: navigate to the game file in the playbox
+                const navResult = await window.api.navigate(`playbox/${g.file}`);
                 if (!navResult?.success) {
                     console.error("Navigation failed:", navResult?.message);
                     createPopup(`Failed to navigate to ${g.name}`);

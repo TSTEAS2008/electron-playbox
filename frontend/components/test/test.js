@@ -1,18 +1,18 @@
-// Sandbox Control Panel - Renderer
+// Playbox Control Panel - Renderer
 
-// Clear entire sandbox
-document.getElementById('btnClearSandbox').addEventListener('click', async () => {
-	const result = await window.api.clearSandbox('all');
+// Clear entire playbox
+document.getElementById('btnClearPlaybox').addEventListener('click', async () => {
+	const result = await window.api.clearPlaybox('all');
 	if (result.success) {
-		console.log('Sandbox cleared:', result.data.message);
+		console.log('Playbox cleared:', result.data.message);
 	} else {
 		console.error('Clear failed:', result.message);
 	}
 });
 
-// Clear specific sandbox folder
-document.getElementById('btnClearSandboxFolder').addEventListener('click', async () => {
-	const result = await window.api.clearSandbox('controls/stuff');
+// Clear specific playbox folder
+document.getElementById('btnClearPlayboxFolder').addEventListener('click', async () => {
+	const result = await window.api.clearPlaybox('controls/stuff');
 	if (result.success) {
 		console.log('Folder cleared:', result.data.message);
 	} else {
@@ -20,21 +20,21 @@ document.getElementById('btnClearSandboxFolder').addEventListener('click', async
 	}
 });
 
-// Prepare sandbox from config
-document.getElementById('btnPrepareSandbox').addEventListener('click', async () => {
-	const result = await window.api.prepareSandbox('test.json');
+// Prepare playbox from config
+document.getElementById('btnPreparePlaybox').addEventListener('click', async () => {
+	const result = await window.api.preparePlaybox('test.json');
 	if (result.success) {
-		console.log('Sandbox prepared:', result.data.prepared);
+		console.log('Playbox prepared:', result.data.prepared);
 	} else {
 		console.error('Prepare failed:', result.message);
 	}
 });
 
-// Assemble sandbox
-document.getElementById('btnAssembleSandbox').addEventListener('click', async () => {
-	const result = await window.api.assembleSandbox('test.json');
+// Assemble playbox
+document.getElementById('btnAssemblePlaybox').addEventListener('click', async () => {
+	const result = await window.api.assemblePlaybox('test.json');
 	if (result.success) {
-		console.log('Sandbox assembled:', result.data.message);
+		console.log('Playbox assembled:', result.data.message);
 	} else {
 		console.error('Assemble failed:', result.message);
 	}
@@ -42,7 +42,7 @@ document.getElementById('btnAssembleSandbox').addEventListener('click', async ()
 
 // Launch test app
 document.getElementById('btnLaunch').addEventListener('click', async () => {
-	const result = await window.api.startApp('components/test/script.js'); //change to sandbox/controls/stuff/thing.js if you want the one that gets copied to be ran
+	const result = await window.api.startApp('components/test/script.js'); //change to playbox/controls/stuff/thing.js if you want the one that gets copied to be ran
 	if (result.success) {
 		console.log(`Launched ${result.data.launched} (PID: ${result.data.pid})`);
 	} else {

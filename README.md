@@ -1,14 +1,14 @@
 # Electron Playbox
 
-An abstraction layer for Electron that provides a clean, secure API for managing sandboxed applications, child processes, and navigation.
+An abstraction layer for Electron that provides a clean, secure API for managing playboxed applications, child processes, and navigation.
 
 ## Philosophy
 
 Electron Playbox follows "The 7 Commandments" - a minimal, focused API surface that handles the most common Electron framework needs:
 
-1. **Clear Sandbox** - Reset your sandbox environment
-2. **Prepare Sandbox** - Set up folder structure from config
-3. **Assemble Sandbox** - Build files from components
+1. **Clear Playbox** - Reset your playbox environment
+2. **Prepare Playbox** - Set up folder structure from config
+3. **Assemble Playbox** - Build files from components
 4. **Start App** - Launch external processes or Node.js apps
 5. **Kill App** - Terminate running processes
 6. **List Apps** - View active child processes
@@ -17,7 +17,7 @@ Electron Playbox follows "The 7 Commandments" - a minimal, focused API surface t
 ## Features
 
 - 🔒 **Secure by default** - Path validation prevents directory traversal
-- 📦 **Sandbox management** - Component-based file assembly system
+- 📦 **Playbox management** - Component-based file assembly system
 - 🎯 **Process control** - Spawn and manage child processes (`.exe`, `.js`)
 - 🧭 **Safe navigation** - Custom protocol with validated routing
 - 📝 **Built-in logging** - Automatic process and error logs
@@ -39,15 +39,15 @@ npm install
 // Navigate to a different page
 await window.api.navigate("launcher/menu.html");
 
-// Clear the entire sandbox
-const result = await window.api.clearSandbox();
+// Clear the entire playbox
+const result = await window.api.clearPlaybox();
 
-// Prepare sandbox from config
-await window.api.prepareSandbox("myapp.json");
-await window.api.assembleSandbox("myapp.json");
+// Prepare playbox from config
+await window.api.preparePlaybox("myapp.json");
+await window.api.assemblePlaybox("myapp.json");
 
 // Launch an application
-const { data } = await window.api.startApp("sandbox/apps/game.exe");
+const { data } = await window.api.startApp("playbox/apps/game.exe");
 console.log(`Started PID: ${data.pid}`);
 
 // Check running apps
@@ -60,7 +60,7 @@ await window.api.killApp(data.pid);
 
 ### Config File Structure
 
-Configs live in `frontend/configs/` and define how to build your sandbox:
+Configs live in `frontend/configs/` and define how to build your playbox:
 
 ```json
 {
@@ -96,11 +96,11 @@ All API methods return a consistent response format:
 }
 ```
 
-### Sandbox Management
+### Playbox Management
 
-- `clearSandbox(folder?)` - Clear sandbox or specific folder
-- `prepareSandbox(configPath)` - Create folder structure from config
-- `assembleSandbox(configPath)` - Build files from components
+- `clearPlaybox(folder?)` - Clear playbox or specific folder
+- `preparePlaybox(configPath)` - Create folder structure from config
+- `assemblePlaybox(configPath)` - Build files from components
 
 ### Process Control
 
@@ -122,15 +122,15 @@ electron-playbox/
 ├── preload.js                 # API bridge (contextBridge)
 ├── frontend/                  # Served via app:// protocol
 │   ├── components/            # Reusable HTML/JS/CSS components
-│   ├── configs/               # Sandbox assembly configs
-│   └── sandbox/               # Runtime assembly target
+│   ├── configs/               # Playbox assembly configs
+│   └── playbox/               # Runtime assembly target
 └── localModules/
     ├── appProtocol.js         # Custom protocol handler
     ├── basePath.js            # Path resolution
     ├── loggers.js             # File logging
-    ├── sandboxHelpers.js      # Config validation
+    ├── playboxHelpers.js      # Config validation
     └── commandments/          # The 7 commandments
-        ├── sandbox.js
+        ├── playbox.js
         ├── processControl.js
         └── navigation.js
 ```

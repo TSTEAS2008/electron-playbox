@@ -1,4 +1,4 @@
-// localModules/commandments/sandbox.js
+// localModules/commandments/playbox.js
 import path from "path";
 import fs from "fs";
 import fsp from "fs/promises";
@@ -9,16 +9,16 @@ import {
     copyFile,
     errorResponse,
     successResponse,
-} from "../sandboxHelpers.js";
+} from "../playboxHelpers.js";
 import { errorLog } from "../loggers.js";
 
 /**
- * Clear the sandbox or a specific folder.
+ * Clear the playbox or a specific folder.
  * args: { folder = "all" }
  */
-export async function clearSandbox(args = {}) {
+export async function clearPlaybox(args = {}) {
     const { folder = "all" } = args;
-    const base = servedPaths.sandbox;
+    const base = servedPaths.playbox;
 
     try {
         if (folder === "all") {
@@ -26,7 +26,7 @@ export async function clearSandbox(args = {}) {
             await Promise.all(
                 entries.map((e) => fsp.rm(path.join(base, e), { recursive: true, force: true }))
             );
-            return successResponse({ message: "Sandbox fully cleared." });
+            return successResponse({ message: "Playbox fully cleared." });
         }
 
         if (!isPathSafe(folder, base)) {
@@ -40,16 +40,16 @@ export async function clearSandbox(args = {}) {
         );
         return successResponse({ message: `Folder '${folder}' cleared.` });
     } catch (err) {
-        errorLog(`ClearSandbox Error: ${err?.message ?? err}`);
-        return errorResponse("Failed to clear sandbox.");
+        errorLog(`ClearPlaybox Error: ${err?.message ?? err}`);
+        return errorResponse("Failed to clear playbox.");
     }
 }
 
 /**
- * Prepare the sandbox folders according to the config file.
+ * Prepare the playbox folders according to the config file.
  * args: { configPath }
  */
-export async function prepareSandbox(args = {}) {
+export async function preparePlaybox(args = {}) {
     const { configPath } = args;
 
     try {
@@ -70,13 +70,13 @@ export async function prepareSandbox(args = {}) {
             return errorResponse(validation.error);
         }
 
-        const sandboxBase = servedPaths.sandbox;
+        const playboxBase = servedPaths.playbox;
         const foldersToPrepare = Object.keys(config).filter(
-            (key) => key !== "defaultAssembly" && isPathSafe(key, sandboxBase)
+            (key) => key !== "defaultAssembly" && isPathSafe(key, playboxBase)
         );
 
         for (const folder of foldersToPrepare) {
-            const folderPath = path.join(sandboxBase, folder);
+            const folderPath = path.join(playboxBase, folder);
             await fsp.mkdir(folderPath, { recursive: true });
 
             const contents = await fsp.readdir(folderPath).catch(() => []);
@@ -89,16 +89,16 @@ export async function prepareSandbox(args = {}) {
 
         return successResponse({ prepared: foldersToPrepare });
     } catch (err) {
-        errorLog(`PrepareSandbox Error: ${err?.message ?? err}`);
-        return errorResponse("Failed to prepare sandbox.");
+        errorLog(`PreparePlaybox Error: ${err?.message ?? err}`);
+        return errorResponse("Failed to prepare playbox.");
     }
 }
 
 /**
- * Assemble the sandbox according to the config.
+ * Assemble the playbox according to the config.
  * args: { configPath }
  */
-export async function assembleSandbox(args = {}) {
+export async function assemblePlaybox(args = {}) {
     const { configPath } = args;
 
     try {
@@ -120,18 +120,18 @@ export async function assembleSandbox(args = {}) {
         }
 
         const defaultAssembly = config.defaultAssembly;
-        const sandboxRoot = servedPaths.sandbox;
+        const playboxRoot = servedPaths.playbox;
         const componentsRoot = servedPaths.components;
 
         for (const topLevelKey of Object.keys(config)) {
             if (topLevelKey === "defaultAssembly") continue;
 
-            if (!isPathSafe(topLevelKey, sandboxRoot)) {
+            if (!isPathSafe(topLevelKey, playboxRoot)) {
                 errorLog(`Unsafe top-level folder name: ${topLevelKey}`);
                 continue;
             }
 
-            const targetBaseFolder = path.join(sandboxRoot, topLevelKey);
+            const targetBaseFolder = path.join(playboxRoot, topLevelKey);
 
             for (const obj of config[topLevelKey]) {
                 const {
@@ -171,9 +171,9 @@ export async function assembleSandbox(args = {}) {
             }
         }
 
-        return successResponse({ message: "Sandbox assembly complete." });
+        return successResponse({ message: "Playbox assembly complete." });
     } catch (err) {
-        errorLog(`AssembleSandbox Error: ${err?.message ?? err}`);
-        return errorResponse("Failed to assemble sandbox.");
+        errorLog(`AssemblePlaybox Error: ${err?.message ?? err}`);
+        return errorResponse("Failed to assemble playbox.");
     }
 }

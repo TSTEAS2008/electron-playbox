@@ -22,7 +22,7 @@ protocol.registerSchemesAsPrivileged([
 const servedPaths = {
     root: __basePath,
     app: path.join(__basePath, "frontend"),
-    sandbox: path.join(__basePath, "frontend", "sandbox"),
+    playbox: path.join(__basePath, "frontend", "playbox"),
     configs: path.join(__basePath, "frontend", "configs"),
     components: path.join(__basePath, "frontend", "components")
 };

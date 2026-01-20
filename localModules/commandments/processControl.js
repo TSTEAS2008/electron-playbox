@@ -5,7 +5,7 @@ import { spawn } from "child_process";
 import kill from "tree-kill";
 import { debugLog, errorLog } from "../loggers.js";
 import { servedPaths, isPathSafe } from "../appProtocol.js";
-import { successResponse, errorResponse } from "../sandboxHelpers.js";
+import { successResponse, errorResponse } from "../playboxHelpers.js";
 
 /**
  * Internal children Map is private to this module.

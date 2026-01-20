@@ -14,38 +14,38 @@ Every API call returns a Promise that resolves to:
 }
 ```
 
-## Sandbox Management
+## Playbox Management
 
-### `clearSandbox(folder?)`
+### `clearPlaybox(folder?)`
 
-Clears the sandbox directory or a specific subfolder.
+Clears the playbox directory or a specific subfolder.
 
 **Parameters:**
 - `folder` (string, optional) - Folder name to clear, or `"all"` to clear everything. Default: `"all"`
 
 **Returns:** 
 ```javascript
-{ success: true, data: { message: "Sandbox fully cleared." } }
+{ success: true, data: { message: "Playbox fully cleared." } }
 ```
 
 **Examples:**
 
 ```javascript
-// Clear entire sandbox
-const result = await window.api.clearSandbox();
+// Clear entire playbox
+const result = await window.api.clearPlaybox();
 // or
-await window.api.clearSandbox("all");
+await window.api.clearPlaybox("all");
 
 // Clear specific folder
-await window.api.clearSandbox("apps");
-await window.api.clearSandbox("scripts");
+await window.api.clearPlaybox("apps");
+await window.api.clearPlaybox("scripts");
 ```
 
-**Security:** Only folders within `frontend/sandbox/` can be cleared.
+**Security:** Only folders within `frontend/playbox/` can be cleared.
 
 ---
 
-### `prepareSandbox(configPath)`
+### `preparePlaybox(configPath)`
 
 Creates the folder structure defined in a config file and clears existing contents.
 
@@ -63,7 +63,7 @@ Creates the folder structure defined in a config file and clears existing conten
 **Example:**
 
 ```javascript
-const result = await window.api.prepareSandbox("mygame.json");
+const result = await window.api.preparePlaybox("mygame.json");
 if (result.success) {
   console.log("Prepared folders:", result.data.prepared);
 }
@@ -77,7 +77,7 @@ if (result.success) {
 
 ---
 
-### `assembleSandbox(configPath)`
+### `assemblePlaybox(configPath)`
 
 Assembles files from components according to the config file.
 
@@ -88,20 +88,20 @@ Assembles files from components according to the config file.
 ```javascript
 { 
   success: true, 
-  data: { message: "Sandbox assembly complete." } 
+  data: { message: "Playbox assembly complete." } 
 }
 ```
 
 **Example:**
 
 ```javascript
-// Full sandbox setup workflow
-await window.api.clearSandbox();
-await window.api.prepareSandbox("game.json");
-const result = await window.api.assembleSandbox("game.json");
+// Full playbox setup workflow
+await window.api.clearPlaybox();
+await window.api.preparePlaybox("game.json");
+const result = await window.api.assemblePlaybox("game.json");
 
 if (result.success) {
-  console.log("Sandbox ready!");
+  console.log("Playbox ready!");
 }
 ```
 
@@ -129,7 +129,7 @@ if (result.success) {
 
 **Fields:**
 - `output` - Output filename
-- `outputPath` - Subdirectory within sandbox folder (optional, default: `""`)
+- `outputPath` - Subdirectory within playbox folder (optional, default: `""`)
 - `components` - Array of component files to use
 - `componentPath` - Source folder within `frontend/components/` (optional, default: `""`)
 - `assembly` - Override `defaultAssembly` for this file (optional)
@@ -165,11 +165,11 @@ Launches an external executable or Node.js script as a child process.
 
 ```javascript
 // Launch Windows executable
-const result = await window.api.startApp("sandbox/apps/game.exe");
+const result = await window.api.startApp("playbox/apps/game.exe");
 console.log(`Game started with PID: ${result.data.pid}`);
 
 // Launch Node.js script
-await window.api.startApp("sandbox/scripts/server.js");
+await window.api.startApp("playbox/scripts/server.js");
 
 // Check for errors
 const launch = await window.api.startApp("invalid.exe");
@@ -206,7 +206,7 @@ Terminates a running child process.
 **Example:**
 
 ```javascript
-const app = await window.api.startApp("sandbox/apps/game.exe");
+const app = await window.api.startApp("playbox/apps/game.exe");
 const pid = app.data.pid;
 
 // Later...
@@ -279,9 +279,9 @@ Loads a new page in the main window using the `app://` protocol.
 await window.api.navigate("launcher/menu.html");
 
 // Navigate to game after setup
-await window.api.prepareSandbox("game.json");
-await window.api.assembleSandbox("game.json");
-await window.api.navigate("sandbox/apps/game.html");
+await window.api.preparePlaybox("game.json");
+await window.api.assemblePlaybox("game.json");
+await window.api.navigate("playbox/apps/game.html");
 
 // Navigate with path handling
 await window.api.navigate("levels/level1.html");
@@ -300,7 +300,7 @@ await window.api.navigate("/settings/audio.html"); // Leading slash removed
 All methods use consistent error response format:
 
 ```javascript
-const result = await window.api.clearSandbox("../../../../etc/passwd");
+const result = await window.api.clearPlaybox("../../../../etc/passwd");
 // { success: false, message: "Invalid folder path." }
 
 const result = await window.api.startApp("nonexistent.exe");
@@ -315,22 +315,22 @@ const result = await window.api.killApp(99999);
 ```javascript
 async function setupGame() {
   try {
-    const clear = await window.api.clearSandbox();
+    const clear = await window.api.clearPlaybox();
     if (!clear.success) {
       throw new Error(clear.message);
     }
 
-    const prepare = await window.api.prepareSandbox("game.json");
+    const prepare = await window.api.preparePlaybox("game.json");
     if (!prepare.success) {
       throw new Error(prepare.message);
     }
 
-    const assemble = await window.api.assembleSandbox("game.json");
+    const assemble = await window.api.assemblePlaybox("game.json");
     if (!assemble.success) {
       throw new Error(assemble.message);
     }
 
-    await window.api.navigate("sandbox/apps/game.html");
+    await window.api.navigate("playbox/apps/game.html");
   } catch (err) {
     console.error("Setup failed:", err.message);
     alert("Failed to load game: " + err.message);
@@ -342,32 +342,32 @@ async function setupGame() {
 
 ## Complete Workflow Example
 
-Typical usage pattern for loading a sandboxed application:
+Typical usage pattern for loading a playboxed application:
 
 ```javascript
 async function loadApplication(configName) {
-  // 1. Clear previous sandbox
-  await window.api.clearSandbox();
+  // 1. Clear previous playbox
+  await window.api.clearPlaybox();
   
   // 2. Set up folder structure
-  const prep = await window.api.prepareSandbox(`${configName}.json`);
+  const prep = await window.api.preparePlaybox(`${configName}.json`);
   if (!prep.success) {
     console.error("Failed to prepare:", prep.message);
     return;
   }
   
   // 3. Assemble files from components
-  const asm = await window.api.assembleSandbox(`${configName}.json`);
+  const asm = await window.api.assemblePlaybox(`${configName}.json`);
   if (!asm.success) {
     console.error("Failed to assemble:", asm.message);
     return;
   }
   
   // 4. Navigate to the assembled app
-  await window.api.navigate(`sandbox/${configName}/index.html`);
+  await window.api.navigate(`playbox/${configName}/index.html`);
   
   // 5. Optionally launch helper processes
-  await window.api.startApp(`sandbox/${configName}/server.js`);
+  await window.api.startApp(`playbox/${configName}/server.js`);
 }
 
 // Usage
