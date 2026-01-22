@@ -10,6 +10,7 @@ import { debugLog, errorLog, loggerSetup } from './localModules/loggers.js';
 import { clearPlaybox, preparePlaybox, assemblePlaybox } from "./localModules/commandments/playbox.js";
 import { startApp, killApp, listApps, killAllChildren, children } from "./localModules/commandments/processControl.js";
 import { navigateWindow } from "./localModules/commandments/navigation.js";
+import { endSession } from "./localModules/commandments/endSession.js";
 
 let mainWindow;
 async function createWindow() {
@@ -61,6 +62,10 @@ ipcMain.handle("list-apps", async (_e) => {
 });
 ipcMain.handle("navigate", (_e, args) => {
     return navigateWindow(args, mainWindow);
+});
+
+ipcMain.handle("end-session", (_e, args) => {
+    return endSession();
 });
 
 //app related endpoints

@@ -40,4 +40,7 @@ contextBridge.exposeInMainWorld("api", {
     // 7) Navigate the main window (in-app)
     navigate: (urlPath) =>
     call("navigate", urlPath),
+
+    endSession: () =>
+    call("end-session"),
 });

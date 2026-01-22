@@ -14,6 +14,10 @@ Electron Playbox follows "The 7 Commandments" - a minimal, focused API surface t
 6. **List Apps** - View active child processes
 7. **Navigate** - Change window location safely
 
+With one additional incremental commandment for session management:
+
+8. **End Session** - Clear playbox and quit application
+
 ## Features
 
 - 🔒 **Secure by default** - Path validation prevents directory traversal
@@ -56,6 +60,9 @@ console.log(`Running: ${apps.count} processes`);
 
 // Kill a specific app
 await window.api.killApp(data.pid);
+
+// End the session (clear playbox and quit)
+await window.api.endSession();
 ```
 
 ### Config File Structure
@@ -112,6 +119,10 @@ All API methods return a consistent response format:
 
 - `navigate(urlPath)` - Load a new page in the main window
 
+### Session Management
+
+- `endSession()` - Clear playbox and quit application
+
 See [API.md](API.md) for complete documentation with examples.
 
 ## Project Structure
@@ -132,7 +143,8 @@ electron-playbox/
     └── commandments/          # The 7 commandments
         ├── playbox.js
         ├── processControl.js
-        └── navigation.js
+        ├── navigation.js
+        └── endSession.js
 ```
 
 ## Running & Packaging

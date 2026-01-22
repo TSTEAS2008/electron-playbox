@@ -23,7 +23,7 @@ Clears the playbox directory or a specific subfolder.
 **Parameters:**
 - `folder` (string, optional) - Folder name to clear, or `"all"` to clear everything. Default: `"all"`
 
-**Returns:** 
+**Returns:**
 ```javascript
 { success: true, data: { message: "Playbox fully cleared." } }
 ```
@@ -54,9 +54,9 @@ Creates the folder structure defined in a config file and clears existing conten
 
 **Returns:**
 ```javascript
-{ 
-  success: true, 
-  data: { prepared: ["apps", "scripts", "styles"] } 
+{
+  success: true,
+  data: { prepared: ["apps", "scripts", "styles"] }
 }
 ```
 
@@ -86,9 +86,9 @@ Assembles files from components according to the config file.
 
 **Returns:**
 ```javascript
-{ 
-  success: true, 
-  data: { message: "Playbox assembly complete." } 
+{
+  success: true,
+  data: { message: "Playbox assembly complete." }
 }
 ```
 
@@ -147,12 +147,12 @@ Launches an external executable or Node.js script as a child process.
 
 **Returns:**
 ```javascript
-{ 
-  success: true, 
-  data: { 
-    pid: 12345, 
-    launched: "game.exe" 
-  } 
+{
+  success: true,
+  data: {
+    pid: 12345,
+    launched: "game.exe"
+  }
 }
 ```
 
@@ -197,9 +197,9 @@ Terminates a running child process.
 
 **Returns:**
 ```javascript
-{ 
-  success: true, 
-  data: { message: "Process 12345 killed" } 
+{
+  success: true,
+  data: { message: "Process 12345 killed" }
 }
 ```
 
@@ -231,12 +231,12 @@ Returns all currently running child processes.
 
 **Returns:**
 ```javascript
-{ 
-  success: true, 
-  data: { 
+{
+  success: true,
+  data: {
     pids: [12345, 12346, 12347],
-    count: 3 
-  } 
+    count: 3
+  }
 }
 ```
 
@@ -266,9 +266,9 @@ Loads a new page in the main window using the `app://` protocol.
 
 **Returns:**
 ```javascript
-{ 
-  success: true, 
-  data: { url: "app://launcher/menu.html" } 
+{
+  success: true,
+  data: { url: "app://launcher/menu.html" }
 }
 ```
 
@@ -292,6 +292,49 @@ await window.api.navigate("/settings/audio.html"); // Leading slash removed
 - Validates path against directory traversal
 - Only files in `frontend/` accessible
 - Automatically prefixes with `app://` protocol
+
+---
+
+## Session Management
+
+### `endSession()`
+
+Ends the current session by clearing the playbox and quitting the application.
+
+**Parameters:** None
+
+**Returns:**
+```javascript
+{
+  success: true,
+  data: { message: "Session ended" }
+}
+```
+
+**Example:**
+
+```javascript
+// End session cleanly
+const result = await window.api.endSession();
+// Application will quit after clearing playbox
+```
+
+**Behavior:**
+1. Clears entire playbox directory (same as `clearPlaybox("all")`)
+2. Initiates application shutdown
+3. All child processes are automatically killed during shutdown via the `before-quit` handler
+4. Logs are preserved until next app start
+
+**Use Cases:**
+- Clean exit from application
+- Reset environment between sessions
+- Logout or session timeout handlers
+
+**Notes:**
+- This method will cause the application to quit
+- All running child processes will be terminated
+- Even if playbox clearing fails, the app will still quit
+- Logs all cleanup steps for debugging
 
 ---
 
@@ -348,24 +391,24 @@ Typical usage pattern for loading a playboxed application:
 async function loadApplication(configName) {
   // 1. Clear previous playbox
   await window.api.clearPlaybox();
-  
+
   // 2. Set up folder structure
   const prep = await window.api.preparePlaybox(`${configName}.json`);
   if (!prep.success) {
     console.error("Failed to prepare:", prep.message);
     return;
   }
-  
+
   // 3. Assemble files from components
   const asm = await window.api.assemblePlaybox(`${configName}.json`);
   if (!asm.success) {
     console.error("Failed to assemble:", asm.message);
     return;
   }
-  
+
   // 4. Navigate to the assembled app
   await window.api.navigate(`playbox/${configName}/index.html`);
-  
+
   // 5. Optionally launch helper processes
   await window.api.startApp(`playbox/${configName}/server.js`);
 }
@@ -373,6 +416,11 @@ async function loadApplication(configName) {
 // Usage
 document.querySelector("#launch-game").addEventListener("click", () => {
   loadApplication("game");
+});
+
+// Clean exit
+document.querySelector("#exit-button").addEventListener("click", async () => {
+  await window.api.endSession();
 });
 ```
 
