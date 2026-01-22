@@ -138,12 +138,14 @@ if (result.success) {
 
 ## Process Control
 
-### `startApp(appPath)`
+### `startApp(args)`
 
 Launches an external executable or Node.js script as a child process.
 
 **Parameters:**
-- `appPath` (string, required) - Path to executable/script relative to `frontend/`
+- `args` (object, required)
+  - `appPath` (string, required) - Path to executable/script relative to protocol base
+  - `protocol` (string, optional) - Either `"static"` or `"dynamic"`. Default: `"static"`
 
 **Returns:**
 ```javascript
@@ -162,29 +164,40 @@ Launches an external executable or Node.js script as a child process.
 - ` ` (no extension) - Unix executables
 
 **Examples:**
-
 ```javascript
-// Launch Windows executable
-const result = await window.api.startApp("playbox/apps/game.exe");
-console.log(`Game started with PID: ${result.data.pid}`);
+// Launch Windows executable from install directory (static://)
+const result = await window.api.startApp({ appPath: "apps/launcher.exe" });
+console.log(`Launcher started with PID: ${result.data.pid}`);
 
-// Launch Node.js script
-await window.api.startApp("playbox/scripts/server.js");
+// Launch from playbox in appData (dynamic://)
+await window.api.startApp({ 
+  appPath: "playbox/apps/game.exe", 
+  protocol: "dynamic" 
+});
+
+// Launch Node.js script from static
+await window.api.startApp({ appPath: "scripts/server.js" });
 
 // Check for errors
-const launch = await window.api.startApp("invalid.exe");
+const launch = await window.api.startApp({ appPath: "invalid.exe" });
 if (!launch.success) {
   console.error(launch.message); // "File does not exist"
 }
 ```
 
+**Protocol Selection:**
+- `static://` (default) - Launch from install directory
+  - Use for: bundled executables, scripts shipped with the app
+- `dynamic://` - Launch from appData
+  - Use for: runtime-assembled apps, user-specific executables
+
 **Behavior:**
 - Process stdout/stderr logged to `process.log`
-- Working directory: `frontend/`
+- Working directory: `frontend/` (for static) or appData (for dynamic)
 - Auto-cleanup on exit
 - Tracked in internal process map
 
-**Security:** Paths validated to prevent access outside `frontend/`.
+**Security:** Paths validated to prevent access outside respective protocol base directories.
 
 ---
 
@@ -257,41 +270,57 @@ for (const pid of apps.data.pids) {
 
 ## Navigation
 
-### `navigate(urlPath)`
+### `navigate(args)`
 
-Loads a new page in the main window using the `app://` protocol.
+Loads a new page in the main window using either `static://` or `dynamic://` protocol.
 
 **Parameters:**
-- `urlPath` (string, required) - Path relative to `frontend/`
+- `args` (object or string)
+  - If string: treated as `urlPath` with default protocol (`dynamic`)
+  - If object:
+    - `urlPath` (string, required) - Path relative to protocol base
+    - `protocol` (string, optional) - Either `"static"` or `"dynamic"`. Default: `"dynamic"`
 
 **Returns:**
 ```javascript
 {
   success: true,
-  data: { url: "app://launcher/menu.html" }
+  data: { url: "dynamic://playbox/game.html" }
 }
 ```
 
 **Examples:**
 
 ```javascript
-// Navigate to menu
-await window.api.navigate("launcher/menu.html");
+// Navigate to static menu (from install directory)
+await window.api.navigate({ urlPath: "launcher/menu.html", protocol: "static" });
 
-// Navigate to game after setup
-await window.api.preparePlaybox("game.json");
-await window.api.assemblePlaybox("game.json");
+// Navigate to dynamic playbox content (from appData)
+await window.api.navigate({ urlPath: "playbox/game.html" });
+// or with explicit protocol
+await window.api.navigate({ urlPath: "playbox/game.html", protocol: "dynamic" });
+
+// Shorthand string format (uses default dynamic://)
 await window.api.navigate("playbox/apps/game.html");
 
 // Navigate with path handling
-await window.api.navigate("levels/level1.html");
-await window.api.navigate("/settings/audio.html"); // Leading slash removed
+await window.api.navigate({ urlPath: "levels/level1.html", protocol: "dynamic" });
+await window.api.navigate({ urlPath: "/settings/audio.html", protocol: "static" }); // Leading slash removed
 ```
+
+**Protocol Selection:**
+- `static://` - For files in the install directory (`frontend/`)
+  - Use for: launcher UI, menus, settings pages
+  - Read-only, shipped with the app
+- `dynamic://` - For files in appData (`playbox/`)
+  - Use for: assembled playbox content, runtime-generated files
+  - Writable, user-specific data
 
 **Security:**
 - Validates path against directory traversal
-- Only files in `frontend/` accessible
-- Automatically prefixes with `app://` protocol
+- `static://` can only access `frontend/`
+- `dynamic://` can only access appData directory
+- Automatically prefixes with appropriate protocol
 
 ---
 
@@ -406,11 +435,17 @@ async function loadApplication(configName) {
     return;
   }
 
-  // 4. Navigate to the assembled app
-  await window.api.navigate(`playbox/${configName}/index.html`);
+  // 4. Navigate to the assembled app (in dynamic:// appData)
+  await window.api.navigate({ 
+    urlPath: `playbox/${configName}/index.html`,
+    protocol: "dynamic"
+  });
 
-  // 5. Optionally launch helper processes
-  await window.api.startApp(`playbox/${configName}/server.js`);
+  // 5. Optionally launch helper processes from dynamic playbox
+  await window.api.startApp({ 
+    appPath: `playbox/${configName}/server.js`,
+    protocol: "dynamic"
+  });
 }
 
 // Usage

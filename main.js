@@ -2,9 +2,10 @@
 import { app, BrowserWindow, ipcMain } from "electron";
 import path from "path";
 import { fileURLToPath } from "url";
+import fs from "fs";
 
 import { __basePath } from "./localModules/basePath.js";
-import { registerAppProtocol, APP_PROTOCOL } from "./localModules/appProtocol.js";
+import { registerAppProtocol, STATIC_PROTOCOL } from "./localModules/appProtocol.js";
 import { debugLog, errorLog, loggerSetup } from './localModules/loggers.js';
 
 import { clearPlaybox, preparePlaybox, assemblePlaybox } from "./localModules/commandments/playbox.js";
@@ -25,7 +26,7 @@ async function createWindow() {
     });
 
     //mainWindow.setAspectRatio(16 / 9);
-    await mainWindow.loadURL(`${APP_PROTOCOL}://launcher/menu.html`);
+    await mainWindow.loadURL(`${STATIC_PROTOCOL}://launcher/menu.html`);
 
     mainWindow.on("closed", () => {
         mainWindow = null;
@@ -94,6 +95,13 @@ app.on("activate", async () => {
 
 // ----- Lifecycle
 app.whenReady().then(async () => {
+    // Ensure playbox directory exists in appData
+    const playboxPath = path.join(app.getPath('userData'), 'playbox');
+    if (!fs.existsSync(playboxPath)) {
+        fs.mkdirSync(playboxPath, { recursive: true });
+        debugLog(`[LIFECYCLE] Created playbox directory: ${playboxPath}`);
+    }
+
     registerAppProtocol(debugLog, errorLog);
     await createWindow();
     debugLog("[LIFECYCLE] Window created and ready");

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
-	<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' app:; style-src 'self' app:; img-src 'self' app:; object-src 'none'; media-src 'self' app:;">
+	<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' static:; style-src 'self' static:; img-src 'self' static:; object-src 'none'; media-src 'self' static:;">
 	<title>Playbox Controls</title>
 	<link rel="stylesheet" href="style.css">
 </head>
@@ -17,7 +17,7 @@
 		<button id="btnLaunch">Launch</button>
 	</div>
 
-	<img id="random-img" src="app://media/example/random.png" alt="Random">
+	<img id="random-img" src="static://media/example/random.png" alt="Random">
 
 	<script type="module" src="main.js"></script>
 </body>

@@ -52,7 +52,7 @@ document.getElementById('btnLaunch').addEventListener('click', async () => {
 
 // Navigate back to menu
 document.getElementById('btnNavigate').addEventListener('click', async () => {
-	const result = await window.api.navigate('launcher/menu.html');
+	const result = await window.api.navigate('launcher/menu.html', 'static');
 	if (result.success) {
 		console.log('Navigated to:', result.data);
 	} else {

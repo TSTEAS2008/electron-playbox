@@ -1,4 +1,4 @@
-// app://launcher/menu.js
+// static://launcher/menu.js
 
 // --- Menu Initialization ---
 async function initializeMenu() {

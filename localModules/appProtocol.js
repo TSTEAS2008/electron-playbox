@@ -2,13 +2,24 @@
 import { protocol } from "electron";
 import path from "path";
 import fs from "fs";
-import { __basePath } from "./basePath.js";
+import { __basePath, __appDataPath } from "./basePath.js";
 
-const APP_PROTOCOL = "app";
+const STATIC_PROTOCOL = "static";
+const DYNAMIC_PROTOCOL = "dynamic";
 
 protocol.registerSchemesAsPrivileged([
     {
-        scheme: APP_PROTOCOL,
+        scheme: STATIC_PROTOCOL,
+        privileges: {
+            standard: true,
+            secure: true,
+            supportFetchAPI: true,
+            stream: true,
+            bypassCSP: false,
+        },
+    },
+    {
+        scheme: DYNAMIC_PROTOCOL,
         privileges: {
             standard: true,
             secure: true,
@@ -22,9 +33,12 @@ protocol.registerSchemesAsPrivileged([
 const servedPaths = {
     root: __basePath,
     app: path.join(__basePath, "frontend"),
-    playbox: path.join(__basePath, "frontend", "playbox"),
+    playbox: path.join(__appDataPath, "playbox"),
     configs: path.join(__basePath, "frontend", "configs"),
-    components: path.join(__basePath, "frontend", "components")
+    components: path.join(__basePath, "frontend", "components"),
+    // New base paths for protocol handlers
+    static: path.join(__basePath, "frontend"),
+    dynamic: __appDataPath
 };
 
 function isPathSafe(relativePath, baseDir) {
@@ -43,30 +57,60 @@ function isPathSafe(relativePath, baseDir) {
 
 // Add parameters for debug/error logging
 function registerAppProtocol(debugLog = console.log, errorLog = console.error) {
-    protocol.registerFileProtocol(APP_PROTOCOL, (request, callback) => {
+    // Register static:// protocol
+    protocol.registerFileProtocol(STATIC_PROTOCOL, (request, callback) => {
         try {
             const url = new URL(request.url);
             let relPath = decodeURIComponent(
                 [url.host, url.pathname].join("").replace(/^\/+/, "")
             );
 
-            if (!isPathSafe(relPath, servedPaths.app)) {
-                errorLog(`UNSAFE PATH BLOCKED: ${relPath}`);
+            if (!isPathSafe(relPath, servedPaths.static)) {
+                errorLog(`UNSAFE PATH BLOCKED (static): ${relPath}`);
                 return callback({ error: -6 });
             }
 
-            const absPath = path.join(servedPaths.app, relPath);
+            const absPath = path.join(servedPaths.static, relPath);
 
-            debugLog(`Serving: ${absPath}`);
+            debugLog(`Serving (static): ${absPath}`);
 
             if (!fs.existsSync(absPath)) {
-                errorLog(`FILE NOT FOUND: ${absPath}`);
+                errorLog(`FILE NOT FOUND (static): ${absPath}`);
                 return callback({ error: -6 });
             }
 
             callback({ path: absPath });
         } catch (err) {
-            errorLog(`Protocol error: ${err.message}`);
+            errorLog(`Protocol error (static): ${err.message}`);
+            callback({ error: -2 });
+        }
+    });
+
+    // Register dynamic:// protocol
+    protocol.registerFileProtocol(DYNAMIC_PROTOCOL, (request, callback) => {
+        try {
+            const url = new URL(request.url);
+            let relPath = decodeURIComponent(
+                [url.host, url.pathname].join("").replace(/^\/+/, "")
+            );
+
+            if (!isPathSafe(relPath, servedPaths.dynamic)) {
+                errorLog(`UNSAFE PATH BLOCKED (dynamic): ${relPath}`);
+                return callback({ error: -6 });
+            }
+
+            const absPath = path.join(servedPaths.dynamic, relPath);
+
+            debugLog(`Serving (dynamic): ${absPath}`);
+
+            if (!fs.existsSync(absPath)) {
+                errorLog(`FILE NOT FOUND (dynamic): ${absPath}`);
+                return callback({ error: -6 });
+            }
+
+            callback({ path: absPath });
+        } catch (err) {
+            errorLog(`Protocol error (dynamic): ${err.message}`);
             callback({ error: -2 });
         }
     });
@@ -75,6 +119,7 @@ function registerAppProtocol(debugLog = console.log, errorLog = console.error) {
 export {
     registerAppProtocol,
     isPathSafe,
-    APP_PROTOCOL,
+    STATIC_PROTOCOL,
+    DYNAMIC_PROTOCOL,
     servedPaths,
 };

@@ -40,8 +40,11 @@ npm install
 ```javascript
 // In your renderer process (HTML/JS)
 
-// Navigate to a different page
-await window.api.navigate("launcher/menu.html");
+// Navigate to a different page (defaults to dynamic://)
+await window.api.navigate({ urlPath: "launcher/menu.html", protocol: "static" });
+
+// Or use shorthand for dynamic (most common for playbox content)
+await window.api.navigate({ urlPath: "playbox/game.html" });
 
 // Clear the entire playbox
 const result = await window.api.clearPlaybox();
@@ -50,9 +53,12 @@ const result = await window.api.clearPlaybox();
 await window.api.preparePlaybox("myapp.json");
 await window.api.assemblePlaybox("myapp.json");
 
-// Launch an application
-const { data } = await window.api.startApp("playbox/apps/game.exe");
+// Launch an application (defaults to static://)
+const { data } = await window.api.startApp({ appPath: "playbox/apps/game.exe" });
 console.log(`Started PID: ${data.pid}`);
+
+// Launch from dynamic:// if needed
+await window.api.startApp({ appPath: "playbox/server.js", protocol: "dynamic" });
 
 // Check running apps
 const { data: apps } = await window.api.listApps();
@@ -131,12 +137,12 @@ See [API.md](API.md) for complete documentation with examples.
 electron-playbox/
 ├── main.js                    # Main process entry point
 ├── preload.js                 # API bridge (contextBridge)
-├── frontend/                  # Served via app:// protocol
+├── frontend/                  # Served via static:// protocol
 │   ├── components/            # Reusable HTML/JS/CSS components
-│   ├── configs/               # Playbox assembly configs
-│   └── playbox/               # Runtime assembly target
+│   └── configs/               # Playbox assembly configs
+├── [appData]/playbox/         # Runtime assembly target (dynamic://)
 └── localModules/
-    ├── appProtocol.js         # Custom protocol handler
+    ├── appProtocol.js         # Custom protocol handlers (static/dynamic)
     ├── basePath.js            # Path resolution
     ├── loggers.js             # File logging
     ├── playboxHelpers.js      # Config validation
@@ -163,8 +169,10 @@ npm run package-mac-arm64 --appname=MyApp
 ## Security Notes
 
 - All paths are validated against directory traversal attacks
-- Only files within `frontend/` are accessible via `app://` protocol
-- Child processes can only be spawned from paths within `frontend/`
+- `static://` serves only files within `frontend/` (read-only install directory)
+- `dynamic://` serves only files within appData (writable user directory)
+- Playbox content lives in appData for write permissions
+- Child processes can be spawned from `static://` or `dynamic://` paths
 - Context isolation and node integration disabled in renderer
 - **Note:** Spawned child processes run with full system access—
   validate/trust what you launch

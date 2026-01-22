@@ -17,17 +17,19 @@ export const children = new Map();
  * startApp(args) -> { appPath }
  */
 export async function startApp(args = {}) {
-    const { appPath } = args;
+    const { appPath, protocol = 'static' } = args;
     try {
         if (!appPath || typeof appPath !== "string") {
             return errorResponse("Invalid appPath");
         }
 
-        if(!isPathSafe(appPath, servedPaths.app)) {
+        const basePath = protocol === 'dynamic' ? servedPaths.dynamic : servedPaths.static;
+
+        if(!isPathSafe(appPath, basePath)) {
             return errorResponse("Path outside allowed app directory.");
         }
 
-        const absolute = path.isAbsolute(appPath) ? appPath : path.join(servedPaths.app, appPath);
+        const absolute = path.isAbsolute(appPath) ? appPath : path.join(basePath, appPath);
 
         if (!fs.existsSync(absolute)) {
             return errorResponse("File does not exist");
