@@ -4,7 +4,7 @@ const processList = document.getElementById('process-list');
 const btnRefresh = document.getElementById('btnRefresh');
 const btnKillAll = document.getElementById('btnKillAll');
 
-console.log("Type window.api.startApp('components/runner.js') in order to start an app you can try to kill.");
+console.log("Type window.api.startApp({appPath: 'components/runner.js'}) in order to start an app you can try to kill.");
 
 async function refreshList() {
     const result = await window.api.listApps();

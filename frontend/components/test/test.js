@@ -42,7 +42,7 @@ document.getElementById('btnAssemblePlaybox').addEventListener('click', async ()
 
 // Launch test app
 document.getElementById('btnLaunch').addEventListener('click', async () => {
-	const result = await window.api.startApp('components/test/script.js'); //change to playbox/controls/stuff/thing.js if you want the one that gets copied to be ran
+	const result = await window.api.startApp({appPath: 'components/test/script.js'}); //change to playbox/controls/stuff/thing.js if you want the one that gets copied to be ran
 	if (result.success) {
 		console.log(`Launched ${result.data.launched} (PID: ${result.data.pid})`);
 	} else {
@@ -52,7 +52,7 @@ document.getElementById('btnLaunch').addEventListener('click', async () => {
 
 // Navigate back to menu
 document.getElementById('btnNavigate').addEventListener('click', async () => {
-	const result = await window.api.navigate('launcher/menu.html', 'static');
+	const result = await window.api.navigate({ urlPath: 'launcher/menu.html', protocol: 'static' });
 	if (result.success) {
 		console.log('Navigated to:', result.data);
 	} else {
