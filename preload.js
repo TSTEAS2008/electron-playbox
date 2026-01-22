@@ -26,8 +26,8 @@ contextBridge.exposeInMainWorld("api", {
     call("assemble-playbox", { configPath }),
 
     // 4) Start an external or Node app
-    startApp: (appPath) =>
-    call("start-app", { appPath }),
+    startApp: (args) =>
+    call("start-app", args),
 
     // 5) Kill a running app by PID
     killApp: (pid) =>
@@ -38,8 +38,8 @@ contextBridge.exposeInMainWorld("api", {
     call("list-apps"),
 
     // 7) Navigate the main window (in-app)
-    navigate: (urlPath) =>
-    call("navigate", urlPath),
+    navigate: (args) =>
+    call("navigate", args),
 
     endSession: () =>
     call("end-session"),
