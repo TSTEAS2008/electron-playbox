@@ -14,6 +14,12 @@ import { successResponse, errorResponse } from "../playboxHelpers.js";
 export const children = new Map();
 
 /**
+ * Buffer storage for child process output.
+ * Key: PID, Value: { stdout: Buffer[], stderr: Buffer[] }
+ */
+const outputBuffers = new Map();
+
+/**
  * startApp(args) -> { appPath }
  */
 export async function startApp(args = {}) {
@@ -62,21 +68,30 @@ export async function startApp(args = {}) {
 
         children.set(child.pid, child);
 
+        // Initialize output buffers for this child
+        outputBuffers.set(child.pid, { stdout: [], stderr: [] });
+
         child.stdout?.on("data", (data) => {
+            // Store the data buffer
+            outputBuffers.get(child.pid).stdout.push(Buffer.from(data));
             debugLog(`[OUT ${child.pid}] ${data.toString().trim()}`);
         });
         child.stderr?.on("data", (data) => {
+            // Store the data buffer
+            outputBuffers.get(child.pid).stderr.push(Buffer.from(data));
             debugLog(`[ERR ${child.pid}] ${data.toString().trim()}`);
         });
 
         child.once("exit", (code, signal) => {
             debugLog(`[EXIT] PID ${child.pid} exited with code ${code}, signal ${signal}`);
             children.delete(child.pid);
+            outputBuffers.delete(child.pid);
         });
 
         child.once("error", (err) => {
             errorLog(`[ERROR] PID ${child.pid} error: ${err.message}`);
             children.delete(child.pid);
+            outputBuffers.delete(child.pid);
         });
 
         debugLog(`[SPAWNED] PID: ${child.pid}, File: ${path.basename(appPath)}`);
@@ -127,6 +142,52 @@ export async function listApps() {
     } catch (err) {
         errorLog(`[LIST-APPS] Error: ${err?.message ?? err}`);
         return errorResponse(err?.message ?? "list-apps failed");
+    }
+}
+
+/**
+ * readApp(args) -> { pid, stdout, stderr, stdoutBytes, stderrBytes }
+ * Atomically reads and clears all buffered output from a child process.
+ * Returns exactly what has been written so far, with no race conditions.
+ */
+export async function readApp(args = {}) {
+    const { pid } = args;
+    try {
+        if (typeof pid !== "number") {
+            return errorResponse("Invalid PID");
+        }
+
+        if (!outputBuffers.has(pid)) {
+            return errorResponse("Unknown PID or process has no output buffers");
+        }
+
+        const buffers = outputBuffers.get(pid);
+
+        // Atomically extract and clear the buffer arrays
+        // This prevents race conditions with ongoing writes
+        const stdoutChunks = buffers.stdout.splice(0);
+        const stderrChunks = buffers.stderr.splice(0);
+
+        // Concatenate all chunks into single buffers
+        const stdoutBuffer = stdoutChunks.length > 0 ? Buffer.concat(stdoutChunks) : Buffer.alloc(0);
+        const stderrBuffer = stderrChunks.length > 0 ? Buffer.concat(stderrChunks) : Buffer.alloc(0);
+
+        // Convert to base64 for safe transmission over IPC
+        const stdoutBase64 = stdoutBuffer.toString('base64');
+        const stderrBase64 = stderrBuffer.toString('base64');
+
+        debugLog(`[READ-APP] PID ${pid}: Read ${stdoutBuffer.length} stdout bytes, ${stderrBuffer.length} stderr bytes`);
+
+        return successResponse({
+            pid,
+            stdout: stdoutBase64,
+            stderr: stderrBase64,
+            stdoutBytes: stdoutBuffer.length,
+            stderrBytes: stderrBuffer.length,
+        });
+    } catch (err) {
+        errorLog(`[READ-APP] Error: ${err?.message ?? err}`);
+        return errorResponse(err?.message ?? "read-app failed");
     }
 }
 

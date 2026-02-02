@@ -9,7 +9,7 @@ import { registerAppProtocol, STATIC_PROTOCOL } from "./localModules/appProtocol
 import { debugLog, errorLog, loggerSetup } from './localModules/loggers.js';
 
 import { clearPlaybox, preparePlaybox, assemblePlaybox } from "./localModules/commandments/playbox.js";
-import { startApp, killApp, listApps, killAllChildren, children } from "./localModules/commandments/processControl.js";
+import { startApp, killApp, listApps, killAllChildren, children, readApp } from "./localModules/commandments/processControl.js";
 import { navigateWindow } from "./localModules/commandments/navigation.js";
 import { endSession } from "./localModules/commandments/endSession.js";
 
@@ -67,6 +67,10 @@ ipcMain.handle("navigate", (_e, args) => {
 
 ipcMain.handle("end-session", (_e, args) => {
     return endSession();
+});
+
+ipcMain.handle("read-app", (_e, args) => {
+    return readApp(args);
 });
 
 //app related endpoints

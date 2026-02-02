@@ -43,4 +43,7 @@ contextBridge.exposeInMainWorld("api", {
 
     endSession: () =>
     call("end-session"),
+
+    readApp: (args) =>
+    call("read-app", args),
 });
