@@ -41,7 +41,7 @@ await window.api.clearPlaybox("apps");
 await window.api.clearPlaybox("scripts");
 ```
 
-**Security:** Only folders within `frontend/playbox/` can be cleared.
+**Security:** Only folders within `userData/playbox/` can be cleared.
 
 ---
 
@@ -169,7 +169,7 @@ Launches an external executable or Node.js script as a child process.
 const result = await window.api.startApp({ appPath: "apps/launcher.exe" });
 console.log(`Launcher started with PID: ${result.data.pid}`);
 
-// Launch from playbox in appData (dynamic://)
+// Launch from userData (dynamic://)
 await window.api.startApp({ 
   appPath: "playbox/apps/game.exe", 
   protocol: "dynamic" 
@@ -186,14 +186,14 @@ if (!launch.success) {
 ```
 
 **Protocol Selection:**
-- `static://` (default) - Launch from install directory
+- `static://` (default) - Launch from install directory (`frontend/`)
   - Use for: bundled executables, scripts shipped with the app
-- `dynamic://` - Launch from appData
+- `dynamic://` - Launch from userData
   - Use for: runtime-assembled apps, user-specific executables
 
 **Behavior:**
-- Process stdout/stderr logged to `process.log`
-- Working directory: `frontend/` (for static) or appData (for dynamic)
+- Process stdout/stderr buffered in memory for reading via `readApp()`
+- Working directory: `frontend/`
 - Auto-cleanup on exit
 - Tracked in internal process map
 
@@ -219,7 +219,7 @@ Terminates a running child process.
 **Example:**
 
 ```javascript
-const app = await window.api.startApp("playbox/apps/game.exe");
+const app = await window.api.startApp({ appPath: "playbox/apps/game.exe" });
 const pid = app.data.pid;
 
 // Later...
@@ -268,6 +268,87 @@ for (const pid of apps.data.pids) {
 
 ---
 
+### `readApp(pid)`
+
+Reads and clears all buffered output from a child process. This is an atomic operation that returns exactly what has been written since the last read.
+
+**Parameters:**
+- `pid` (number, required) - Process ID of the running child process
+
+**Returns:**
+```javascript
+{
+  success: true,
+  data: {
+    pid: 12345,
+    stdout: "base64-encoded-data",
+    stderr: "base64-encoded-data",
+    stdoutBytes: 1024,
+    stderrBytes: 0
+  }
+}
+```
+
+**Examples:**
+
+```javascript
+// Start a process
+const app = await window.api.startApp({ 
+  appPath: "scripts/data-processor.js",
+  protocol: "static"
+});
+const pid = app.data.pid;
+
+// Poll for output
+setInterval(async () => {
+  const output = await window.api.readApp({ pid });
+  
+  if (output.success) {
+    // Decode base64 to get actual text
+    const stdout = atob(output.data.stdout);
+    const stderr = atob(output.data.stderr);
+    
+    if (stdout) console.log("Process output:", stdout);
+    if (stderr) console.error("Process errors:", stderr);
+  }
+}, 1000);
+
+// One-time read
+const result = await window.api.readApp({ pid: 12345 });
+if (result.success) {
+  const text = atob(result.data.stdout);
+  console.log(`Read ${result.data.stdoutBytes} bytes:`, text);
+}
+```
+
+**Behavior:**
+- **Atomic operation**: Reads and clears buffers in one step, preventing race conditions
+- **Base64 encoding**: Output is base64-encoded for safe IPC transmission
+- **Accumulates output**: Buffers all stdout/stderr since last read (or since process start)
+- **Thread-safe**: Multiple simultaneous reads won't corrupt data
+
+**Use Cases:**
+- Polling process output for real-time display
+- Reading completion status from long-running processes
+- Debugging child process behavior
+- Inter-process communication via stdout/stderr
+
+**Decoding Base64:**
+```javascript
+// Browser/renderer process
+const decoded = atob(base64String);
+
+// Node.js (if processing in main)
+const decoded = Buffer.from(base64String, 'base64').toString('utf-8');
+```
+
+**Notes:**
+- Buffers are cleared after reading - calling `readApp()` twice in a row will return empty data on the second call unless the process wrote more output
+- If process doesn't exist or has no buffers, returns error
+- Binary output is preserved through base64 encoding
+
+---
+
 ## Navigation
 
 ### `navigate(args)`
@@ -295,7 +376,7 @@ Loads a new page in the main window using either `static://` or `dynamic://` pro
 // Navigate to static menu (from install directory)
 await window.api.navigate({ urlPath: "launcher/menu.html", protocol: "static" });
 
-// Navigate to dynamic playbox content (from appData)
+// Navigate to dynamic content (from userData)
 await window.api.navigate({ urlPath: "playbox/game.html" });
 // or with explicit protocol
 await window.api.navigate({ urlPath: "playbox/game.html", protocol: "dynamic" });
@@ -308,18 +389,18 @@ await window.api.navigate({ urlPath: "levels/level1.html", protocol: "dynamic" }
 await window.api.navigate({ urlPath: "/settings/audio.html", protocol: "static" }); // Leading slash removed
 ```
 
-**Protocol Selection:**
-- `static://` - For files in the install directory (`frontend/`)
+**Protocol Mapping:**
+- `static://` → `frontend/` (install directory)
   - Use for: launcher UI, menus, settings pages
   - Read-only, shipped with the app
-- `dynamic://` - For files in appData (`playbox/`)
-  - Use for: assembled playbox content, runtime-generated files
-  - Writable, user-specific data
+- `dynamic://` → `userData/` (app data directory)
+  - Use for: assembled playbox content, runtime-generated files, user data
+  - Writable, persists between sessions
 
 **Security:**
 - Validates path against directory traversal
 - `static://` can only access `frontend/`
-- `dynamic://` can only access appData directory
+- `dynamic://` can only access userData directory
 - Automatically prefixes with appropriate protocol
 
 ---
@@ -375,11 +456,14 @@ All methods use consistent error response format:
 const result = await window.api.clearPlaybox("../../../../etc/passwd");
 // { success: false, message: "Invalid folder path." }
 
-const result = await window.api.startApp("nonexistent.exe");
+const result = await window.api.startApp({ appPath: "nonexistent.exe" });
 // { success: false, message: "File does not exist" }
 
 const result = await window.api.killApp(99999);
 // { success: false, message: "Invalid or unknown PID" }
+
+const result = await window.api.readApp({ pid: 99999 });
+// { success: false, message: "Unknown PID or process has no output buffers" }
 ```
 
 **Best Practice:**
@@ -402,7 +486,7 @@ async function setupGame() {
       throw new Error(assemble.message);
     }
 
-    await window.api.navigate("playbox/apps/game.html");
+    await window.api.navigate({ urlPath: "playbox/apps/game.html" });
   } catch (err) {
     console.error("Setup failed:", err.message);
     alert("Failed to load game: " + err.message);
@@ -435,17 +519,29 @@ async function loadApplication(configName) {
     return;
   }
 
-  // 4. Navigate to the assembled app (in dynamic:// appData)
+  // 4. Navigate to the assembled app (in dynamic:// userData)
   await window.api.navigate({ 
     urlPath: `playbox/${configName}/index.html`,
     protocol: "dynamic"
   });
 
   // 5. Optionally launch helper processes from dynamic playbox
-  await window.api.startApp({ 
+  const server = await window.api.startApp({ 
     appPath: `playbox/${configName}/server.js`,
     protocol: "dynamic"
   });
+  
+  // 6. Monitor process output
+  if (server.success) {
+    const checkOutput = async () => {
+      const output = await window.api.readApp({ pid: server.data.pid });
+      if (output.success && output.data.stdoutBytes > 0) {
+        const text = atob(output.data.stdout);
+        console.log("Server says:", text);
+      }
+    };
+    setInterval(checkOutput, 1000);
+  }
 }
 
 // Usage
@@ -475,4 +571,4 @@ All API operations are logged automatically:
 - Child process errors
 - Fatal failures
 
-Logs are cleared on app start and written to project root.
+Logs are cleared on app start and written to application root directory.
