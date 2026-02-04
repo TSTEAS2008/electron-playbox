@@ -16,8 +16,8 @@ Electron Playbox follows "The 9 Commandments" - a minimal, focused API surface t
 7. **Navigate** - Change window location safely
 
 **Plus 2 Additional Commandments:**
-8. **Read App** - Read buffered output from child processes
-9. **End Session** - Clear playbox and quit application
+1. **Read App** - Read buffered output from child processes
+2. **End Session** - Clear playbox and quit application
 
 ## Features
 
