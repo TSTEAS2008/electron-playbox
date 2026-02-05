@@ -571,4 +571,4 @@ All API operations are logged automatically:
 - Child process errors
 - Fatal failures
 
-Logs are cleared on app start and written to application root directory.
+Logs are cleared on app start and written to [userData]/logs

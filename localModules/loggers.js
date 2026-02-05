@@ -2,16 +2,20 @@
 
 import fs from 'fs';
 import path from 'path';
-import { __basePath } from './basePath.js';
+import { __appDataPath } from './basePath.js';
 
 // Setup logging to files (clears on startup)
-const logDir = __basePath;
+const logDir = path.join(__appDataPath, 'logs');
 export const processLogFile = path.join(logDir, 'process.log');
 export const errorLogFile = path.join(logDir, 'error.log');
 
 // Clear log files on startup
 export function clearAllLogs() {
     try {
+        // Ensure logs directory exists
+        if (!fs.existsSync(logDir)) {
+            fs.mkdirSync(logDir, { recursive: true });
+        }
         fs.writeFileSync(processLogFile, '');
         fs.writeFileSync(errorLogFile, '');
     } catch (err) {
