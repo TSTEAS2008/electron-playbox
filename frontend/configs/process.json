@@ -1,9 +1,7 @@
 {
-  "defaultAssembly": false,
   "process": [
     {
       "output": "index.html",
-      "outputPath": "",
       "components": [
         "document.html"
       ],
@@ -11,18 +9,14 @@
     },
     {
       "output": "style.css",
-      "outputPath": "",
       "components": [
         "css/root.css",
         "test/test.css",
         "process/style.css"
-      ],
-      "componentPath": "",
-      "assembly": true
+      ]
     },
     {
       "output": "process-manager.js",
-      "outputPath": "",
       "components": [
         "script.js"
       ],

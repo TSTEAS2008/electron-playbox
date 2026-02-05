@@ -8,18 +8,8 @@ export function validateConfigStructure(config) {
         return { valid: false, error: "Config must be an object" };
     }
 
-    if (!("defaultAssembly" in config)) {
-        return { valid: false, error: "Missing defaultAssembly field" };
-    }
-
-    if (typeof config.defaultAssembly !== "boolean") {
-        return { valid: false, error: "defaultAssembly must be boolean" };
-    }
-
     // Validate each top-level folder
     for (const [key, value] of Object.entries(config)) {
-        if (key === "defaultAssembly") continue;
-
         if (!Array.isArray(value)) {
             return { valid: false, error: `Folder '${key}' must be an array` };
         }
@@ -29,16 +19,30 @@ export function validateConfigStructure(config) {
                 return { valid: false, error: `Invalid item in folder '${key}'` };
             }
 
+            // Only output and components are required
             if (!item.output || typeof item.output !== "string") {
                 return { valid: false, error: `Missing or invalid 'output' in '${key}'` };
             }
 
-            if (!Array.isArray(item.components) || item.components.length === 0) {
-                return { valid: false, error: `Invalid or empty 'components' for '${item.output}'` };
+            if (!Array.isArray(item.components)) {
+                return { valid: false, error: `'components' must be an array for '${item.output}'` };
             }
 
             if (!item.components.every(c => typeof c === "string")) {
                 return { valid: false, error: `All components must be strings for '${item.output}'` };
+            }
+
+            // componentPath is optional, but if present must be a string
+            if (item.componentPath !== undefined && typeof item.componentPath !== "string") {
+                return { valid: false, error: `'componentPath' must be a string for '${item.output}'` };
+            }
+
+            // Reject any unknown fields
+            const allowedFields = ["output", "components", "componentPath"];
+            const actualFields = Object.keys(item);
+            const unknownFields = actualFields.filter(f => !allowedFields.includes(f));
+            if (unknownFields.length > 0) {
+                return { valid: false, error: `Unknown fields in '${item.output}': ${unknownFields.join(", ")}` };
             }
         }
     }

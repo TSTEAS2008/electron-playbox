@@ -72,7 +72,7 @@ export async function preparePlaybox(args = {}) {
 
         const playboxBase = servedPaths.playbox;
         const foldersToPrepare = Object.keys(config).filter(
-            (key) => key !== "defaultAssembly" && isPathSafe(key, playboxBase)
+            (key) => isPathSafe(key, playboxBase)
         );
 
         for (const folder of foldersToPrepare) {
@@ -96,6 +96,22 @@ export async function preparePlaybox(args = {}) {
 
 /**
  * Assemble the playbox according to the config.
+ * Behavior is inferred from component count:
+ * - 0 components: creates empty file
+ * - 1 component: copies file
+ * - 2+ components: concatenates files
+ *
+ * Config format:
+ * {
+ *   "folderName": [
+ *     {
+ *       "output": "path/to/file.ext",  // Full path including subdirs and filename
+ *       "components": ["comp1.js", "comp2.js"],  // Array of component filenames
+ *       "componentPath": "subfolder"  // Optional: subdirectory in components root
+ *     }
+ *   ]
+ * }
+ *
  * args: { configPath }
  */
 export async function assemblePlaybox(args = {}) {
@@ -119,13 +135,10 @@ export async function assemblePlaybox(args = {}) {
             return errorResponse(validation.error);
         }
 
-        const defaultAssembly = config.defaultAssembly;
         const playboxRoot = servedPaths.playbox;
         const componentsRoot = servedPaths.components;
 
         for (const topLevelKey of Object.keys(config)) {
-            if (topLevelKey === "defaultAssembly") continue;
-
             if (!isPathSafe(topLevelKey, playboxRoot)) {
                 errorLog(`Unsafe top-level folder name: ${topLevelKey}`);
                 continue;
@@ -136,37 +149,46 @@ export async function assemblePlaybox(args = {}) {
             for (const obj of config[topLevelKey]) {
                 const {
                     output,
-                    outputPath = "",
                     components,
                     componentPath = "",
-                    assembly,
                 } = obj;
 
-                if (
-                    !isPathSafe(output, targetBaseFolder) ||
-                    !isPathSafe(outputPath, targetBaseFolder) ||
-                    !isPathSafe(componentPath, componentsRoot) ||
-                    !components.every((c) => isPathSafe(c, componentsRoot))
-                ) {
-                    errorLog(`Unsafe paths in config: ${JSON.stringify(obj)}`);
+                // Validate output path safety
+                if (!isPathSafe(output, targetBaseFolder)) {
+                    errorLog(`Unsafe output path in config: ${JSON.stringify(obj)}`);
                     continue;
                 }
 
-                const outputDir = path.join(targetBaseFolder, outputPath);
-                const componentDir = path.join(componentsRoot, componentPath);
+                // Validate component path safety
+                if (!isPathSafe(componentPath, componentsRoot)) {
+                    errorLog(`Unsafe componentPath in config: ${JSON.stringify(obj)}`);
+                    continue;
+                }
+
+                // Validate all component names are safe
+                if (!components.every((c) => isPathSafe(c, componentsRoot))) {
+                    errorLog(`Unsafe component paths in config: ${JSON.stringify(obj)}`);
+                    continue;
+                }
+
+                // Build full output path and ensure directory exists
+                const outputFilePath = path.join(targetBaseFolder, output);
+                const outputDir = path.dirname(outputFilePath);
                 await fsp.mkdir(outputDir, { recursive: true });
 
-                const outputFilePath = path.join(outputDir, output);
-                const useAssembly = assembly !== undefined ? assembly : defaultAssembly;
+                // Build component directory path
+                const componentDir = path.join(componentsRoot, componentPath);
 
-                if (useAssembly) {
-                    await assembleFile(outputFilePath, componentDir, components);
-                } else {
-                    if (components.length !== 1) {
-                        errorLog(`Assembly false but multiple components for ${output}`);
-                        continue;
-                    }
+                // Infer behavior from component count
+                if (components.length === 0) {
+                    // Create empty file
+                    await fsp.writeFile(outputFilePath, "", "utf-8");
+                } else if (components.length === 1) {
+                    // Copy single file
                     await copyFile(outputFilePath, componentDir, components[0]);
+                } else {
+                    // Concatenate multiple files
+                    await assembleFile(outputFilePath, componentDir, components);
                 }
             }
         }

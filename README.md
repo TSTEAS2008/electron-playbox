@@ -86,11 +86,9 @@ Configs live in `frontend/configs/` and define how to build your playbox:
 
 ```json
 {
-  "defaultAssembly": true,
   "apps": [
     {
-      "output": "game.html",
-      "outputPath": "apps",
+      "output": "apps/game.html",
       "components": ["header.html", "game-canvas.html", "footer.html"],
       "componentPath": "game"
     }
@@ -99,12 +97,20 @@ Configs live in `frontend/configs/` and define how to build your playbox:
     {
       "output": "game.js",
       "components": ["engine.js", "physics.js", "renderer.js"],
-      "componentPath": "game",
-      "assembly": true
+      "componentPath": "game"
+    },
+    {
+      "output": "config.json",
+      "components": ["settings.json"]
     }
   ]
 }
 ```
+
+**Assembly behavior is automatic:**
+- 0 components → creates empty file
+- 1 component → copies file as-is
+- 2+ components → concatenates files together
 
 ## API Overview
 
@@ -226,7 +232,6 @@ The assembly system allows building different application configurations from a 
 ```javascript
 // Educational platform: beginner mode
 {
-  "defaultAssembly": true,
   "ide": [{
     "output": "editor.js",
     "components": ["core.js", "simple-debugger.js", "help.js"]
@@ -235,7 +240,6 @@ The assembly system allows building different application configurations from a 
 
 // Professional mode
 {
-  "defaultAssembly": true,
   "ide": [{
     "output": "editor.js",
     "components": ["core.js", "advanced-debugger.js", "profiler.js", "git.js"]

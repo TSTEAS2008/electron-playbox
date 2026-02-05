@@ -72,14 +72,14 @@ if (result.success) {
 **Config Requirements:**
 - Must exist in `frontend/configs/`
 - Must be valid JSON
-- Must contain `defaultAssembly` boolean field
 - Folder names become top-level keys
+- Each folder contains an array of file definitions
 
 ---
 
 ### `assemblePlaybox(configPath)`
 
-Assembles files from components according to the config file.
+Assembles files from components according to the config file. Assembly behavior is automatically inferred from the number of components.
 
 **Parameters:**
 - `configPath` (string, required) - Path to config file relative to `frontend/configs/`
@@ -105,34 +105,73 @@ if (result.success) {
 }
 ```
 
-**Assembly Behavior:**
-- If `assembly: true` (or `defaultAssembly: true`): Concatenates components into one file
-- If `assembly: false`: Copies single component as-is
-- Creates output directories recursively
+**Assembly Behavior (automatic based on component count):**
+- **0 components**: Creates an empty file
+- **1 component**: Copies the single component file as-is
+- **2+ components**: Concatenates all components into one file
 
 **Config Structure:**
 
 ```json
 {
-  "defaultAssembly": true,
   "folderName": [
     {
-      "output": "filename.ext",
-      "outputPath": "subfolder/path",
+      "output": "path/to/file.ext",
       "components": ["component1.js", "component2.js"],
-      "componentPath": "source/folder",
-      "assembly": true
+      "componentPath": "source/folder"
     }
   ]
 }
 ```
 
 **Fields:**
-- `output` - Output filename
-- `outputPath` - Subdirectory within playbox folder (optional, default: `""`)
-- `components` - Array of component files to use
-- `componentPath` - Source folder within `frontend/components/` (optional, default: `""`)
-- `assembly` - Override `defaultAssembly` for this file (optional)
+- `output` (required) - Full path including subdirectories and filename (e.g., `"apps/game/index.html"`)
+- `components` (required) - Array of component filenames to use (can be empty)
+- `componentPath` (optional) - Subdirectory within `frontend/components/` where components are located (default: `""`)
+
+**Examples:**
+
+```json
+{
+  "apps": [
+    {
+      "output": "game/index.html",
+      "components": ["header.html", "game.html", "footer.html"],
+      "componentPath": "game"
+    }
+  ],
+  "scripts": [
+    {
+      "output": "engine.js",
+      "components": ["core.js", "physics.js", "render.js"]
+    },
+    {
+      "output": "config.json",
+      "components": ["default-config.json"]
+    },
+    {
+      "output": "placeholder.txt",
+      "components": []
+    }
+  ]
+}
+```
+
+This config will:
+- Concatenate 3 HTML files from `components/game/` into `playbox/apps/game/index.html`
+- Concatenate 3 JS files from `components/` into `playbox/scripts/engine.js`
+- Copy single file from `components/` to `playbox/scripts/config.json`
+- Create empty file at `playbox/scripts/placeholder.txt`
+
+**Path Handling:**
+- `output` can include subdirectories (e.g., `"levels/level1/map.json"`)
+- Directories are created automatically
+- `componentPath` navigates within `frontend/components/` only
+
+**Validation:**
+- Rejects configs with unknown fields (only `output`, `components`, `componentPath` allowed)
+- All paths validated against directory traversal
+- Component files must exist or assembly will fail
 
 ---
 
