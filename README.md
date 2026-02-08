@@ -162,6 +162,7 @@ electron-playbox/
 │   ├── basePath.js            # Path resolution
 │   ├── loggers.js             # File logging
 │   ├── playboxHelpers.js      # Config validation
+│   ├── window.js              # Window creation
 │   └── commandments/          # The 9 commandments
 │       ├── playbox.js         # Clear, prepare, assemble
 │       ├── processControl.js  # Start, kill, list, read

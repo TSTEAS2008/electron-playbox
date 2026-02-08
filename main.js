@@ -7,31 +7,13 @@ import fs from "fs";
 import { __basePath } from "./localModules/basePath.js";
 import { registerAppProtocol, STATIC_PROTOCOL } from "./localModules/appProtocol.js";
 import { debugLog, errorLog, loggerSetup } from './localModules/loggers.js';
+import { mainWindow, createWindow } from './localModules/window.js'
 
 import { clearPlaybox, preparePlaybox, assemblePlaybox } from "./localModules/commandments/playbox.js";
 import { startApp, killApp, listApps, killAllChildren, children, readApp } from "./localModules/commandments/processControl.js";
 import { navigateWindow } from "./localModules/commandments/navigation.js";
 import { endSession } from "./localModules/commandments/endSession.js";
 
-let mainWindow;
-async function createWindow() {
-    mainWindow = new BrowserWindow({
-        fullscreen: true,
-        frame: false,
-        webPreferences: {
-            contextIsolation: true,
-            nodeIntegration: false,
-            preload: path.join(__basePath, "preload.js"),
-        },
-    });
-
-    //mainWindow.setAspectRatio(16 / 9);
-    await mainWindow.loadURL(`${STATIC_PROTOCOL}://launcher/menu.html`);
-
-    mainWindow.on("closed", () => {
-        mainWindow = null;
-    });
-}
 
 //log setup section
 loggerSetup({
@@ -42,7 +24,7 @@ loggerSetup({
     appPath: app.getAppPath()
 });
 
-//The 7 commandments: [clear playbox], [prepare playbox], [assemble playbox], [start app], [list apps], [navigate]
+//The 9 commandments: [clear playbox], [prepare playbox], [assemble playbox], [start app], [list apps], [navigate], [end session], [read app]
 ipcMain.handle("clear-playbox", async (_e, args) => {
     return clearPlaybox(args);
 });
