@@ -5,6 +5,7 @@ const btnRefresh = document.getElementById('btnRefresh');
 const btnKillAll = document.getElementById('btnKillAll');
 
 console.log("Type window.api.startApp({appPath: 'components/runner.js'}) in order to start an app you can try to kill.");
+console.log("Refresh the list, read the pid's number N and type foo=await window.api.readApp({pid: N}), then type console.log(atob(foo.data.stdout)) to see some output.");
 
 async function refreshList() {
     const result = await window.api.listApps();

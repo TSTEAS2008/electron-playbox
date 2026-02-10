@@ -59,3 +59,8 @@ document.getElementById('btnNavigate').addEventListener('click', async () => {
 		console.error('Navigation failed:', result.message);
 	}
 });
+
+// End the session
+document.getElementById('btnQuit').addEventListener('click', async () => {
+	await window.api.endSession();
+});
