@@ -4,7 +4,7 @@
 async function initializeMenu() {
     try {
         const result = await window.api.clearPlaybox('all');
-        console.log(result.message);
+        console.log(result.data?.message);
     } catch (err) {
         console.error('ClearPlaybox Error:', err);
     }
@@ -36,15 +36,15 @@ async function initializeMenu() {
             try {
                 // Step 1: assemble playbox using config
                 const result = await window.api.assemblePlaybox(g.config);
-                if (!result?.success) {
-                    console.error("Assembly failed:", result?.message);
+                if (!result?.data?.success) {
+                    console.error("Assembly failed:", result?.data?.message);
                     createPopup(`Failed to assemble ${g.name}`);
                     return;
                 }
                 // Step 2: navigate to the game file in the playbox
                 const navResult = await window.api.navigate(`playbox/${g.file}`);
-                if (!navResult?.success) {
-                    console.error("Navigation failed:", navResult?.message);
+                if (!navResult?.data?.success) {
+                    console.error("Navigation failed:", navResult?.data?.message);
                     createPopup(`Failed to navigate to ${g.name}`);
                 }
             } catch (err) {
