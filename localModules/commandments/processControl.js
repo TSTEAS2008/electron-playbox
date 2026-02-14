@@ -23,7 +23,15 @@ const outputBuffers = new Map();
  * startApp(args) -> { appPath }
  */
 export async function startApp(args = {}) {
-    const { appPath, protocol = 'static' } = args;
+    let appPath, protocol;
+
+    if (typeof args === 'string') {
+        appPath = args;
+        protocol = 'static';
+    } else {
+        ({ appPath, protocol = 'static' } = args);
+    }
+
     try {
         if (!appPath || typeof appPath !== "string") {
             return errorResponse("Invalid appPath");
@@ -106,8 +114,8 @@ export async function startApp(args = {}) {
 /**
  * killApp(args) -> { pid }
  */
-export async function killApp(args = {}) {
-    const { pid } = args;
+export async function killApp(args) {
+    const pid = typeof args === 'number' ? args : args.pid;
     try {
         if (typeof pid !== "number" || !children.has(pid)) {
             return errorResponse("Invalid or unknown PID");
@@ -150,8 +158,8 @@ export async function listApps() {
  * Atomically reads and clears all buffered output from a child process.
  * Returns exactly what has been written so far, with no race conditions.
  */
-export async function readApp(args = {}) {
-    const { pid } = args;
+export async function readApp(args) {
+    const pid = typeof args === 'number' ? args : args.pid;
     try {
         if (typeof pid !== "number") {
             return errorResponse("Invalid PID");
@@ -219,3 +227,4 @@ export async function killAllChildren() {
     children.clear();
     debugLog("[CLEANUP] All child processes terminated (or attempted)");
 }
+H

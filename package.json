@@ -1,6 +1,6 @@
 {
   "name": "electron-playbox",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "Abstraction layer for Electron.",
   "license": "MIT",
   "author": "TSTEAS2008",

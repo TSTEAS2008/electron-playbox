@@ -43,10 +43,10 @@ npm install
 // In your renderer process (HTML/JS)
 
 // Navigate to a different page (defaults to dynamic://)
-await window.api.navigate({ urlPath: "playbox/game.html" });
+await window.api.navigate("playbox/game.html");
 
 // Or navigate to static bundled content
-await window.api.navigate({ urlPath: "launcher/menu.html", protocol: "static" });
+await window.api.navigate("launcher/menu.html", "static");
 
 // Clear the entire playbox
 const result = await window.api.clearPlaybox();
@@ -56,14 +56,14 @@ await window.api.preparePlaybox("myapp.json");
 await window.api.assemblePlaybox("myapp.json");
 
 // Launch an application (defaults to static://)
-const { data } = await window.api.startApp({ appPath: "apps/game.exe" });
+const { data } = await window.api.startApp("apps/game.exe");
 console.log(`Started PID: ${data.pid}`);
 
 // Launch from dynamic:// (userData) if needed
-await window.api.startApp({ appPath: "playbox/server.js", protocol: "dynamic" });
+await window.api.startApp("playbox/server.js", "dynamic");
 
 // Read process output
-const output = await window.api.readApp({ pid: data.pid });
+const output = await window.api.readApp(data.pid);
 if (output.success) {
   const text = atob(output.data.stdout);
   console.log("Process output:", text);

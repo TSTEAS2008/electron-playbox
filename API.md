@@ -205,20 +205,17 @@ Launches an external executable or Node.js script as a child process.
 **Examples:**
 ```javascript
 // Launch Windows executable from install directory (static://)
-const result = await window.api.startApp({ appPath: "apps/launcher.exe" });
+const result = await window.api.startApp("apps/launcher.exe");
 console.log(`Launcher started with PID: ${result.data.pid}`);
 
 // Launch from userData (dynamic://)
-await window.api.startApp({ 
-  appPath: "playbox/apps/game.exe", 
-  protocol: "dynamic" 
-});
+await window.api.startApp("playbox/apps/game.exe", "dynamic");
 
 // Launch Node.js script from static
-await window.api.startApp({ appPath: "scripts/server.js" });
+await window.api.startApp("scripts/server.js");
 
 // Check for errors
-const launch = await window.api.startApp({ appPath: "invalid.exe" });
+const launch = await window.api.startApp("invalid.exe");
 if (!launch.success) {
   console.error(launch.message); // "File does not exist"
 }
@@ -258,7 +255,7 @@ Terminates a running child process.
 **Example:**
 
 ```javascript
-const app = await window.api.startApp({ appPath: "playbox/apps/game.exe" });
+const app = await window.api.startApp("playbox/apps/game.exe");
 const pid = app.data.pid;
 
 // Later...
@@ -332,15 +329,12 @@ Reads and clears all buffered output from a child process. This is an atomic ope
 
 ```javascript
 // Start a process
-const app = await window.api.startApp({ 
-  appPath: "scripts/data-processor.js",
-  protocol: "static"
-});
+const app = await window.api.startApp("scripts/data-processor.js", "static");
 const pid = app.data.pid;
 
 // Poll for output
 setInterval(async () => {
-  const output = await window.api.readApp({ pid });
+  const output = await window.api.readApp(pid);
   
   if (output.success) {
     // Decode base64 to get actual text
@@ -353,7 +347,7 @@ setInterval(async () => {
 }, 1000);
 
 // One-time read
-const result = await window.api.readApp({ pid: 12345 });
+const result = await window.api.readApp(12345);
 if (result.success) {
   const text = atob(result.data.stdout);
   console.log(`Read ${result.data.stdoutBytes} bytes:`, text);
@@ -413,19 +407,19 @@ Loads a new page in the main window using either `static://` or `dynamic://` pro
 
 ```javascript
 // Navigate to static menu (from install directory)
-await window.api.navigate({ urlPath: "launcher/menu.html", protocol: "static" });
+await window.api.navigate("launcher/menu.html", "static");
 
 // Navigate to dynamic content (from userData)
-await window.api.navigate({ urlPath: "playbox/game.html" });
+await window.api.navigate("playbox/game.html");
 // or with explicit protocol
-await window.api.navigate({ urlPath: "playbox/game.html", protocol: "dynamic" });
+await window.api.navigate("playbox/game.html", "dynamic");
 
 // Shorthand string format (uses default dynamic://)
 await window.api.navigate("playbox/apps/game.html");
 
 // Navigate with path handling
-await window.api.navigate({ urlPath: "levels/level1.html", protocol: "dynamic" });
-await window.api.navigate({ urlPath: "/settings/audio.html", protocol: "static" }); // Leading slash removed
+await window.api.navigate("levels/level1.html", "dynamic");
+await window.api.navigate("/settings/audio.html", "static"); // Leading slash removed
 ```
 
 **Protocol Mapping:**
@@ -495,13 +489,13 @@ All methods use consistent error response format:
 const result = await window.api.clearPlaybox("../../../../etc/passwd");
 // { success: false, message: "Invalid folder path." }
 
-const result = await window.api.startApp({ appPath: "nonexistent.exe" });
+const result = await window.api.startApp("nonexistent.exe");
 // { success: false, message: "File does not exist" }
 
 const result = await window.api.killApp(99999);
 // { success: false, message: "Invalid or unknown PID" }
 
-const result = await window.api.readApp({ pid: 99999 });
+const result = await window.api.readApp(99999);
 // { success: false, message: "Unknown PID or process has no output buffers" }
 ```
 
@@ -525,7 +519,7 @@ async function setupGame() {
       throw new Error(assemble.message);
     }
 
-    await window.api.navigate({ urlPath: "playbox/apps/game.html" });
+    await window.api.navigate("playbox/apps/game.html");
   } catch (err) {
     console.error("Setup failed:", err.message);
     alert("Failed to load game: " + err.message);
@@ -565,15 +559,12 @@ async function loadApplication(configName) {
   });
 
   // 5. Optionally launch helper processes from dynamic playbox
-  const server = await window.api.startApp({ 
-    appPath: `playbox/${configName}/server.js`,
-    protocol: "dynamic"
-  });
+  const server = await window.api.startApp({ `playbox/${configName}/server.js`, "dynamic"});
   
   // 6. Monitor process output
   if (server.success) {
     const checkOutput = async () => {
-      const output = await window.api.readApp({ pid: server.data.pid });
+      const output = await window.api.readApp(server.data.pid);
       if (output.success && output.data.stdoutBytes > 0) {
         const text = atob(output.data.stdout);
         console.log("Server says:", text);
