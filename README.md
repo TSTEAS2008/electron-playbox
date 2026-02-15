@@ -1,33 +1,67 @@
 # Electron Playbox
 
-An abstraction layer for Electron that provides a clean, secure API for managing playboxed applications, child processes, and navigation.
+**A complete application runtime for desktop software.**
 
-## Philosophy
+Desktop applications are built wrong. They're monolithic bundles where immutable code, mutable state, runtime assembly, and process management are tangled together. Every app reinvents these primitives poorly.
 
-Electron Playbox follows "The 9 Commandments" - a minimal, focused API surface that handles the most common Electron framework needs:
+Electron Playbox provides the foundational architecture that desktop applications should have had from the beginning: a coherent system of protocols, process primitives, component composition, and capability-based APIs that work together as a unified runtime.
 
-**The 7 Core Commandments:**
-1. **Clear Playbox** - Reset your playbox environment
-2. **Prepare Playbox** - Set up folder structure from config
-3. **Assemble Playbox** - Build files from components
-4. **Start App** - Launch external processes or Node.js apps
-5. **Kill App** - Terminate running processes
-6. **List Apps** - View active child processes
-7. **Navigate** - Change window location safely
+This isn't a framework. It's not a boilerplate. It's a substrate - the missing layer between Electron and your application that gives you OS-level rigor for building desktop software.
 
-**Plus 2 Additional Commandments:**
-1. **Read App** - Read buffered output from child processes
-2. **End Session** - Clear playbox and quit application
+## What You Get
 
-## Features
+**Protocol Layer:**
+- `static://` - Immutable application code (bundled, read-only)
+- `dynamic://` - Runtime state and assembly (writable, persistent)
 
-- 🔒 **Secure by default** - Path validation prevents directory traversal
-- 📦 **Playbox management** - Component-based file assembly system
-- 🎯 **Process control** - Spawn and manage child processes (`.exe`, `.js`)
-- 🧭 **Safe navigation** - Custom protocol with validated routing
-- 📊 **Process monitoring** - Read stdout/stderr from child processes
-- 📝 **Built-in logging** - Automatic process and error logs
-- 🧹 **Clean shutdown** - Automatic child process cleanup
+**Process Primitives:**
+- Spawn and manage child processes (.exe, .js) with proper lifecycle
+- Read/from process streams with buffered IPC
+- Clean shutdown with automatic cleanup
+
+**Component System:**
+- Declarative assembly from reusable components
+- Configuration-driven application building
+- Zero-component, single-component, or multi-component modes
+
+**Capability API:**
+Nine focused operations that handle everything:
+1. Clear playbox
+2. Prepare playbox structure
+3. Assemble components
+4. Start processes
+5. Kill processes
+6. List active processes
+7. Navigate protocols
+8. Read process output
+9. End session
+
+**The entire system is coherent.** Each piece reinforces the others. The protocols enable clean separation. The playbox enables runtime assembly. The process primitives enable system integration. The API surface is minimal and complete.
+
+## Why This Architecture
+
+**Current approach:**
+```
+app.asar (everything bundled together)
+├── Mixed UI code and business logic
+├── Hardcoded configurations
+├── Ad-hoc userData management
+└── Fragile child process handling
+```
+
+**Electron Playbox:**
+```
+static://     (immutable, shipped code)
+├── Component library
+├── Assembly configurations
+└── Launcher logic
+
+dynamic://    (mutable, runtime state)
+├── playbox/  (assembled applications, ephemeral)
+└── logs/     (process and error logs)
+```
+
+Clean boundaries. Clear data flow. Proper separation of concerns.
 
 ## Quick Start
 
@@ -40,49 +74,32 @@ npm install
 ### Basic Usage
 
 ```javascript
-// In your renderer process (HTML/JS)
-
-// Navigate to a different page (defaults to dynamic://)
-await window.api.navigate("playbox/game.html");
-
-// Or navigate to static bundled content
+// Navigate between protocols
 await window.api.navigate("launcher/menu.html", "static");
+await window.api.navigate("playbox/game.html", "dynamic");
 
-// Clear the entire playbox
-const result = await window.api.clearPlaybox();
-
-// Prepare playbox from config
+// Assemble application from components
+await window.api.clearPlaybox();
 await window.api.preparePlaybox("myapp.json");
 await window.api.assemblePlaybox("myapp.json");
 
-// Launch an application (defaults to static://)
+// Manage processes
 const { data } = await window.api.startApp("apps/game.exe");
 console.log(`Started PID: ${data.pid}`);
 
-// Launch from dynamic:// (userData) if needed
-await window.api.startApp("playbox/server.js", "dynamic");
-
-// Read process output
 const output = await window.api.readApp(data.pid);
-if (output.success) {
-  const text = atob(output.data.stdout);
-  console.log("Process output:", text);
-}
+const text = atob(output.data.stdout);
+console.log("Process output:", text);
 
-// Check running apps
-const { data: apps } = await window.api.listApps();
-console.log(`Running: ${apps.count} processes`);
-
-// Kill a specific app
 await window.api.killApp(data.pid);
 
-// End the session (clear playbox and quit)
+// Clean shutdown
 await window.api.endSession();
 ```
 
-### Config File Structure
+### Component Assembly
 
-Configs live in `frontend/configs/` and define how to build your playbox:
+Configs define how to build applications from reusable components:
 
 ```json
 {
@@ -98,100 +115,110 @@ Configs live in `frontend/configs/` and define how to build your playbox:
       "output": "game.js",
       "components": ["engine.js", "physics.js", "renderer.js"],
       "componentPath": "game"
-    },
-    {
-      "output": "config.json",
-      "components": ["settings.json"]
     }
   ]
 }
 ```
 
-**Assembly behavior is automatic:**
-- 0 components → creates empty file
-- 1 component → copies file as-is
-- 2+ components → concatenates files together
+**Assembly behavior (automatic):**
+- 0 components → empty file
+- 1 component → direct copy
+- 2+ components → concatenation
 
-## API Overview
+## Complete API
 
-All API methods return a consistent response format:
+All methods return `{ success: boolean, data?: any, message?: string }`
 
-```javascript
-{
-  success: true,      // or false
-  data: { ... },      // on success
-  message: "error"    // on failure
-}
-```
-
-### Playbox Management
-
-- `clearPlaybox(folder?)` - Clear playbox or specific folder
-- `preparePlaybox(configPath)` - Create folder structure from config
+### Playbox Operations
+- `clearPlaybox(folder?)` - Reset environment
+- `preparePlaybox(configPath)` - Create structure from config
 - `assemblePlaybox(configPath)` - Build files from components
 
 ### Process Control
-
-- `startApp(args)` - Launch .exe or .js files
-- `killApp(pid)` - Terminate a specific process
-- `listApps()` - Get all running child processes
-- `readApp(pid)` - Read buffered stdout/stderr from a process
+- `startApp(appPath, protocol?)` - Launch .exe, .js or extensionless (unix binary)
+- `killApp(pid)` - Terminate process
+- `listApps()` - Get active processes
+- `readApp(pid)` - Read buffered stdout/stderr (base64)
 
 ### Navigation
+- `navigate(urlPath, protocol?)` - Load page via protocol
 
-- `navigate(args)` - Load a new page in the main window
+### Session
+- `endSession()` - Clear playbox and quit
 
-### Session Management
+See [API.md](API.md) for complete documentation.
 
-- `endSession()` - Clear playbox and quit application
-
-See [API.md](API.md) for complete documentation with examples.
-
-## Project Structure
+## Architecture
 
 ```
 electron-playbox/
-├── main.js                    # Main process entry point
-├── preload.js                 # API bridge (contextBridge)
-├── frontend/                  # Served via static:// protocol
-│   ├── components/            # Reusable HTML/JS/CSS components
-│   ├── configs/               # Playbox assembly configs
-│   └── launcher/              # Launcher UI files
+├── main.js                    # Runtime entry
+├── preload.js                 # API bridge
+├── frontend/                  # static:// protocol root
+│   ├── components/            # Reusable pieces
+│   ├── configs/               # Assembly definitions
+│   └── launcher/              # Application entry point
 ├── localModules/
-│   ├── appProtocol.js         # Custom protocol handlers (static/dynamic)
+│   ├── appProtocol.js         # Protocol handlers
 │   ├── basePath.js            # Path resolution
-│   ├── loggers.js             # File logging
-│   ├── playboxHelpers.js      # Config validation
-│   ├── window.js              # Window creation
-│   └── commandments/          # The 9 commandments
-│       ├── playbox.js         # Clear, prepare, assemble
-│       ├── processControl.js  # Start, kill, list, read
-│       ├── navigation.js      # Navigate
-│       └── endSession.js      # End session
-└── [userData]/                # Served via dynamic:// protocol
-    ├── playbox/               # Runtime assembly target (ephemeral)
-    ├── logs/                  # Application logs
-    └── [any other data]/      # Persistent user/app data
+│   ├── loggers.js             # Logging primitives
+│   ├── playboxHelpers.js      # Assembly utilities
+│   ├── window.js              # Window management
+│   └── commandments/          # Nine core operations
+└── [userData]/                # dynamic:// protocol root
+    ├── playbox/               # Runtime assembly (ephemeral)
+    ├── logs/                  # Process logs
+    └── [data]/                # Persistent state
 ```
 
 ## Protocol Architecture
 
-Electron Playbox uses two custom protocols for serving content:
+### `static://` → Immutable Application Code
+- Source components for assembly
+- Configuration definitions
+- Launcher and core UI
+- Read-only, ships with installation
 
-### `static://` → `frontend/` (Install Directory)
-- **Read-only** bundled application files
-- Source for components to be assembled
-- Launcher UI and configs
-- Example: `static://launcher/menu.html`
-
-### `dynamic://` → `userData/` (App Data Directory)
-- **Writable** runtime content
-- Playbox assemblies
+### `dynamic://` → Mutable Runtime State
+- Assembled applications (playbox)
 - User data and settings
-- Any persistent application data
-- Example: `dynamic://playbox/game/index.html`
+- Process logs
+- Writable, persists across sessions
 
-**Key Insight:** The playbox directory (`userData/playbox/`) is where assembled applications are deployed. It's ephemeral (cleared by `endSession()`), while other userData content persists.
+The playbox (`userData/playbox/`) is the deployment target - ephemeral runtime assemblies cleared by `endSession()`. Everything else in userData persists.
+
+## Real-World Usage
+
+**This architecture works for:**
+- Simple single-purpose applications (clean separation still matters)
+- Simple games (keeps logic out of the renderer)
+- Complex multi-tool suites (VSCode-scale applications)
+- Multi-tenant platforms (different assemblies per user)
+- Educational software (progressive feature unlocking)
+- Gaming platforms (launcher + games sharing engine)
+- Creative tools (multiple apps sharing renderers)
+
+**Works with any frontend:**
+- React, Vue, Angular, Svelte
+- Three.js, Babylon.js, PixiJS
+- Plain HTML/CSS/JS
+- Whatever you want - it's just protocols and process management
+
+**Advanced patterns:**
+- WebSocket server connection to random port via `startApp("server.js")` + `readApp()`
+- Native tool integration via child process spawning
+- Hot-swappable UIs without rebuilding
+- Component reuse across different configurations
+
+## Security Model
+
+- Path validation prevents directory traversal
+- `static://` confined to install directory
+- `dynamic://` confined to userData
+- Context isolation enabled
+- Node integration disabled in renderer
+- Capability-based IPC (only exposed methods available)
+- Child processes with `.js` run with full Node.js access - validate inputs
 
 ## Running & Packaging
 
@@ -199,84 +226,20 @@ Electron Playbox uses two custom protocols for serving content:
 # Development
 npm run raw
 
-# Package for your platform
+# Package
 npm run package-windows --appname=MyApp
 npm run package-linux --appname=MyApp
 npm run package-mac-x64 --appname=MyApp
 npm run package-mac-arm64 --appname=MyApp
 ```
 
-## Security Notes
+## Philosophy
 
-- All paths are validated against directory traversal attacks
-- `static://` serves only files within `frontend/` (install directory)
-- `dynamic://` serves only files within `userData/` (app data directory)
-- Playbox content lives in `userData/playbox/` with full read/write
-- Child processes can be spawned from either `static://` or `dynamic://` paths
-- Context isolation enabled, node integration disabled in renderer
-- IPC surface is capability-based (only exposed methods available)
-- **Important:** Child processes spawned with `.js` extension run with full Node.js system access via `ELECTRON_RUN_AS_NODE=1` - validate what you launch
-- **Important:** Process output via `readApp()` is base64-encoded for safe IPC transmission
+Desktop applications need the same architectural rigor as operating systems: clean separation of concerns, well-defined primitives, capability-based security, and coherent abstractions.
 
-## Component Assembly System
+Electron Playbox provides those primitives. The protocols handle data flow. The playbox handles deployment. The process management handles system integration. The component system handles composition. The API surface is minimal and complete.
 
-The assembly system allows building different application configurations from a shared component library:
-
-**Use Cases:**
-- Different feature sets per user tier (basic vs professional)
-- Multiple applications sharing common components
-- A/B testing different UI configurations
-- Educational platforms with progressive feature unlocking
-- Multi-tenant applications with per-tenant customization
-
-**Example Workflow:**
-```javascript
-// Educational platform: beginner mode
-{
-  "ide": [{
-    "output": "editor.js",
-    "components": ["core.js", "simple-debugger.js", "help.js"]
-  }]
-}
-
-// Professional mode
-{
-  "ide": [{
-    "output": "editor.js",
-    "components": ["core.js", "advanced-debugger.js", "profiler.js", "git.js"]
-  }]
-}
-```
-
-Same components, different assemblies. The config determines what gets built.
-
-## Logs
-
-Two log files are created in the application root directory:
-- `process.log` - General debug info and process lifecycle
-- `error.log` - Error messages and failures
-
-Logs are cleared on each app start. All child process stdout/stderr is also logged here in addition to being buffered for `readApp()`.
-
-## Architecture Insights
-
-**What This System Actually Does:**
-
-Electron Playbox is a platform for building and running desktop applications with:
-- **Component-based architecture** - Build apps from reusable components
-- **Multi-app runtime** - Multiple applications in one Electron window
-- **System integration** - Child process spawning for native tools
-- **Persistent + ephemeral storage** - userData for data, playbox for runtime
-- **Dynamic assembly** - Apps assembled on-demand from configurations
-
-**Real-World Applications:**
-- Development tool suites (IDE, debugger, profiler)
-- Enterprise application platforms (different apps per user role)
-- Educational platforms (different environments per course level)
-- Gaming platforms (launcher + games sharing engine components)
-- Creative suites (multiple tools sharing rendering components)
-
-**It's not a kiosk system** - there's nothing preventing you from building VSCode-scale applications here. The playbox is simply the deployment target for your assembled frontend code, while the rest of userData can hold project files, settings, extensions, etc.
+Everything else is just your application code.
 
 ## License
 

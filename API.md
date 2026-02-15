@@ -559,7 +559,7 @@ async function loadApplication(configName) {
   });
 
   // 5. Optionally launch helper processes from dynamic playbox
-  const server = await window.api.startApp({ `playbox/${configName}/server.js`, "dynamic"});
+  const server = await window.api.startApp(`playbox/${configName}/server.js`, "dynamic");
   
   // 6. Monitor process output
   if (server.success) {
