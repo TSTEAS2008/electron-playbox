@@ -9,7 +9,7 @@ async function initializeMenu() {
         console.error('ClearPlaybox Error:', err);
     }
 
-    const games = [
+    const entries = [
         { name: "Control Panel", config: "test.json", file: "controls/index.html"},
         { name: "Process Killer", config: "process.json", file: "process/index.html"}
     ];
@@ -22,15 +22,15 @@ async function initializeMenu() {
     title.textContent = "Electron Playbox";
     body.appendChild(title);
 
-    // --- Game List Container
+    // --- Entry List Container
     const list = document.createElement("div");
-    list.id = "game-list";
+    list.id = "entry-list";
     body.appendChild(list);
 
     // --- Populate the list
-    for (const g of games) {
+    for (const g of entries) {
         const btn = document.createElement("button");
-        btn.className = "game-button";
+        btn.className = "entry-button";
         btn.textContent = g.name;
         btn.addEventListener("click", async () => {
             try {
@@ -41,7 +41,7 @@ async function initializeMenu() {
                     createPopup(`Failed to assemble ${g.name}`);
                     return;
                 }
-                // Step 2: navigate to the game file in the playbox
+                // Step 2: navigate to the entry file in the playbox
                 const navResult = await window.api.navigate(`playbox/${g.file}`);
                 if (!navResult?.data?.success) {
                     console.error("Navigation failed:", navResult?.data?.message);

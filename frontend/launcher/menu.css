@@ -89,10 +89,10 @@ h1 {
 }
 
 /* ============================================
- *  GAME LIST
+ *  ENTRY LIST
  *  ============================================ */
 
-#game-list {
+#entry-list {
 flex: 1;
 width: 80%;
 max-width: 41.67cqw; /* 800px at 1920p */
@@ -103,7 +103,7 @@ padding: var(--space-20);
 box-shadow: 0 0 var(--space-20) rgba(0, 0, 0, 0.5) inset;
 }
 
-.game-button {
+.entry-button {
     display: block;
     width: 100%;
     background: linear-gradient(90deg, var(--color-button-start), var(--color-button-end));
@@ -118,7 +118,7 @@ box-shadow: 0 0 var(--space-20) rgba(0, 0, 0, 0.5) inset;
     transition: all 0.2s ease;
 }
 
-.game-button:hover {
+.entry-button:hover {
     background: linear-gradient(90deg, var(--color-button-hover-start), var(--color-button-hover-end));
     border-color: var(--color-border-hover);
     transform: translateY(calc(-1 * var(--space-2)));
