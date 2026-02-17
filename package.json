@@ -14,8 +14,8 @@
     "package-mac-arm64": "electron-packager . $npm_config_appname --platform=darwin --arch=arm64 --out=dist --overwrite --no-asar"
   },
   "devDependencies": {
-    "@electron/packager": "^19.0.1",
-    "electron": "^40.1.0"
+    "@electron/packager": "^19.0.5",
+    "electron": "^40.4.1"
   },
   "dependencies": {
     "tree-kill": "^1.2.2"
